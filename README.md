@@ -30,19 +30,6 @@ goal:      Cloud Security Engineer
 
 ---
 
-### 🔭 Featured Project
-
-**[lectrik0.github.io](https://github.com/Lectrik0/Lectrik0.github.io)**: my portfolio, built and locked down like a production site.
-
-- 🛡️ Strict Content Security Policy and Trusted Types, so injected scripts can't run
-- 🧪 About 70 automated tests on every change, including real XSS payloads and accessibility checks
-- 🕶️ Zero third-party requests: no trackers, self-hosted fonts
-- ☁️ AWS infrastructure as code (S3, CloudFront, security headers) with keyless GitHub Actions deploys via OIDC
-
-📖 Write-up: [Issue #1: Hardening a static site](https://lectrik0.github.io/writeups/hardening-this-site.html)
-
----
-
 ### 🧰 Tech Stack
 
 ![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white)
