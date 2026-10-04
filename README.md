@@ -3,6 +3,8 @@
 <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=26&duration=3000&pause=1000&color=00C2FF&center=true&vCenter=true&width=600&lines=Hi%2C+I'm+Ali+%F0%9F%91%8B;Cybersecurity+Student+%40+GIU+Egypt;Building+%26+breaking+things+in+the+cloud+%E2%98%81%EF%B8%8F%F0%9F%94%92" alt="Typing intro" />
 
 <p>
+  <a href="https://lectrik0.github.io"><img src="https://img.shields.io/badge/Website-lectrik0.github.io-0B706D?style=for-the-badge" alt="Website"/></a>
+  <a href="https://lectrik0.github.io/cv.html"><img src="https://img.shields.io/badge/CV-View-157A4B?style=for-the-badge" alt="CV"/></a>
   <a href="https://www.linkedin.com/in/aliahmed255/"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/></a>
   <a href="mailto:aliahmedismail2@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"/></a>
 </p>
@@ -15,7 +17,8 @@
 
 ```yaml
 name:      Ali
-role:      Senior Cybersecurity Student @ German International University (GIU), Egypt
+role:      Final-year Cybersecurity Student @ German International University (GIU), Egypt
+now:       Intern @ Ebank (Jul 2026 – Jan 2027)
 focus:     Cloud Security (AWS)
 interests: [IAM, cloud misconfigurations, infrastructure as code, security automation]
 goal:      Cloud Security Engineer
@@ -24,6 +27,19 @@ goal:      Cloud Security Engineer
 - ☁️ Specializing in **cloud security**: securing AWS environments, finding misconfigurations, and automating security with code
 - 🔬 Practicing on intentionally vulnerable labs like **flaws.cloud** and **CloudGoat**, with write-ups coming here
 - 🌱 Currently learning **AWS**, **Python** for security automation, and **Terraform**
+
+---
+
+### 🔭 Featured Project
+
+**[lectrik0.github.io](https://github.com/Lectrik0/Lectrik0.github.io)**: my portfolio, built and locked down like a production site.
+
+- 🛡️ Strict Content Security Policy and Trusted Types, so injected scripts can't run
+- 🧪 About 70 automated tests on every change, including real XSS payloads and accessibility checks
+- 🕶️ Zero third-party requests: no trackers, self-hosted fonts
+- ☁️ AWS infrastructure as code (S3, CloudFront, security headers) with keyless GitHub Actions deploys via OIDC
+
+📖 Write-up: [Issue #1: Hardening a static site](https://lectrik0.github.io/writeups/hardening-this-site.html)
 
 ---
 
@@ -41,7 +57,8 @@ goal:      Cloud Security Engineer
 
 ### 🗺️ Roadmap
 
-- [ ] AWS Certified Cloud Practitioner
+- [x] Hardened personal site: CSP, Trusted Types, automated security tests ([lectrik0.github.io](https://lectrik0.github.io))
+- [ ] AWS Certified Cloud Practitioner (in progress)
 - [ ] AWS Certified Solutions Architect – Associate
 - [ ] Hands-on cloud security labs (flaws.cloud, flaws2.cloud, CloudGoat)
 - [ ] Secure AWS baseline in Terraform
@@ -51,8 +68,6 @@ goal:      Cloud Security Engineer
 ---
 
 <div align="center">
-
-<img src="https://github-readme-stats.vercel.app/api?username=Lectrik0&show_icons=true&hide_border=true&bg_color=0D1117&title_color=00C2FF&icon_color=00C2FF&text_color=C9D1D9" alt="GitHub stats" />
 
 <sub>🔒 Secure by design, not by accident.</sub>
 
