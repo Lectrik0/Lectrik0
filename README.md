@@ -55,15 +55,13 @@ goal:      Cloud Security Engineer
 
 ---
 
-### 🗺️ Roadmap
+### 📝 Latest Write-ups
 
-- [x] Hardened personal site: CSP, Trusted Types, automated security tests ([lectrik0.github.io](https://lectrik0.github.io))
-- [ ] AWS Certified Cloud Practitioner (in progress)
-- [ ] AWS Certified Solutions Architect – Associate
-- [ ] Hands-on cloud security labs (flaws.cloud, flaws2.cloud, CloudGoat)
-- [ ] Secure AWS baseline in Terraform
-- [ ] AWS misconfiguration scanner (Python + boto3)
-- [ ] AWS Certified Security – Specialty
+<!-- WRITEUPS:START -->
+- **[Issue #1: Hardening a static site](https://lectrik0.github.io/writeups/hardening-this-site.html)** · Oct 2026<br>A site with no backend can still be attacked. How this one blocks XSS with CSP and Trusted Types, and how I tested it.
+<!-- WRITEUPS:END -->
+
+<sub>Updated every day from <a href="https://lectrik0.github.io/feed.xml">my site's feed</a>.</sub>
 
 ---
 
