@@ -42,17 +42,31 @@ goal:      Cloud Security Engineer
 
 ---
 
+### 🏅 Certifications
+
+<!-- CERTS:START -->
+<a href="https://lectrik0.github.io/#certs"><img src="https://img.shields.io/badge/AWS%20Certified%20Cloud%20Practitioner-In%20progress-2F6FB3?style=for-the-badge" alt="AWS Certified Cloud Practitioner: In progress"/></a>
+<a href="https://lectrik0.github.io/#certs"><img src="https://img.shields.io/badge/AWS%20Solutions%20Architect%20%E2%80%93%20Associate-Planned-6E7781?style=for-the-badge" alt="AWS Solutions Architect – Associate: Planned"/></a>
+<a href="https://lectrik0.github.io/#certs"><img src="https://img.shields.io/badge/AWS%20Certified%20Security%20%E2%80%93%20Specialty-Planned-6E7781?style=for-the-badge" alt="AWS Certified Security – Specialty: Planned"/></a>
+<!-- CERTS:END -->
+
 ### 📝 Latest Write-ups
 
 <!-- WRITEUPS:START -->
 - **[Issue #1: Hardening a static site](https://lectrik0.github.io/writeups/hardening-this-site.html)** · Oct 2026<br>A site with no backend can still be attacked. How this one blocks XSS with CSP and Trusted Types, and how I tested it.
 <!-- WRITEUPS:END -->
 
-<sub>Updated every day from <a href="https://lectrik0.github.io/feed.xml">my site's feed</a>.</sub>
+<sub>Certifications and write-ups update every day from <a href="https://lectrik0.github.io">my site</a>.</sub>
 
 ---
 
 <div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Lectrik0/Lectrik0/output/snake-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Lectrik0/Lectrik0/output/snake.svg">
+  <img alt="A snake eating my GitHub contribution graph" src="https://raw.githubusercontent.com/Lectrik0/Lectrik0/output/snake.svg">
+</picture>
 
 <sub>🔒 Secure by design, not by accident.</sub>
 
