@@ -45,20 +45,22 @@ const STATUS = {
   planned: { label: "Planned", color: "6E7781" }
 };
 const ORDER = Object.keys(STATUS);
+// An earned certification's proof link (e.g. Credly), https only; the URL parser escapes quotes.
+const httpsUrl = v => { try { const u = new URL(String(v)); return u.protocol === "https:" ? u.href : ""; } catch { return ""; } };
 // shields.io static badge text: "-" and "_" are doubled, then URL-encoded.
 const badgeText = s => encodeURIComponent(s.replace(/-/g, "--").replace(/_/g, "__"));
 
 function certs(json) {
   const data = JSON.parse(json);
   const list = (Array.isArray(data.certs) ? data.certs : [])
-    .map((c, i) => ({ name: plain(c?.name), status: STATUS[c?.status] ? c.status : "planned", i }))
+    .map((c, i) => ({ name: plain(c?.name), status: STATUS[c?.status] ? c.status : "planned", verify: c?.status === "earned" ? httpsUrl(c?.verify) : "", i }))
     .filter(c => c.name)
     .sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status) || a.i - b.i);
   if (!list.length) return "Coming soon.";
-  return list.map(({ name, status }) => {
+  return list.map(({ name, status, verify }) => {
     const { label, color } = STATUS[status];
     const src = `https://img.shields.io/badge/${badgeText(name)}-${badgeText(label)}-${color}?style=for-the-badge`;
-    return `<a href="${SITE}#certs"><img src="${src}" alt="${name}: ${label}"/></a>`;
+    return `<a href="${verify || `${SITE}#certs`}"><img src="${src}" alt="${name}: ${label}"/></a>`;
   }).join("\n");
 }
 
