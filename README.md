@@ -45,6 +45,7 @@ goal:      Cloud Security Engineer
 ### 🏅 Certifications
 
 <!-- CERTS:START -->
+<a href="https://www.theforage.com/completion-certificates/9PBTqmSxAf6zZTseP/E9pA6qsdbeyEkp3ti_9PBTqmSxAf6zZTseP_6aa43695707c12e17f9b9691_1789147084233_completion_certificate.pdf"><img src="https://img.shields.io/badge/Deloitte%20Cyber%20Job%20Simulation%20(virtual)-Earned-157A4B?style=for-the-badge" alt="Deloitte Cyber Job Simulation (virtual): Earned"/></a>
 <a href="https://lectrik0.github.io/#certs"><img src="https://img.shields.io/badge/AWS%20Certified%20Cloud%20Practitioner-In%20progress-2F6FB3?style=for-the-badge" alt="AWS Certified Cloud Practitioner: In progress"/></a>
 <a href="https://lectrik0.github.io/#certs"><img src="https://img.shields.io/badge/AWS%20Solutions%20Architect%20%E2%80%93%20Associate-Planned-6E7781?style=for-the-badge" alt="AWS Solutions Architect – Associate: Planned"/></a>
 <a href="https://lectrik0.github.io/#certs"><img src="https://img.shields.io/badge/AWS%20Certified%20Security%20%E2%80%93%20Specialty-Planned-6E7781?style=for-the-badge" alt="AWS Certified Security – Specialty: Planned"/></a>
