@@ -54,6 +54,7 @@ goal:      Cloud Security Engineer
 ### 📝 Latest Write-ups
 
 <!-- WRITEUPS:START -->
+- **[Issue #2: Explain This CVE](https://lectrik0.github.io/writeups/explain-this-cve.html)** · Oct 2026<br>A one-page CVE checker for managers and analysts: how it works, and the security choices behind it.
 - **[Issue #1: Hardening a static site](https://lectrik0.github.io/writeups/hardening-this-site.html)** · Oct 2026<br>A site with no backend can still be attacked. How this one blocks XSS with CSP and Trusted Types, and how I tested it.
 <!-- WRITEUPS:END -->
 
