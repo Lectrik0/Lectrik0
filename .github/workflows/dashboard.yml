@@ -1,0 +1,33 @@
+name: Contribution dashboard
+
+# Once a day, redraw dashboard.svg (the terminal-style activity picture in README.md) from my public
+# GitHub contribution calendar. It uses only the workflow's own token and a script in this repo.
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard
+
+jobs:
+  draw:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Draw dashboard.svg
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/dashboard.mjs
+      - name: Commit if anything changed
+        run: |
+          git add dashboard.svg
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Redraw the contribution dashboard"
+          git push

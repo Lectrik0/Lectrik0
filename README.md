@@ -64,11 +64,7 @@ goal:      Cloud Security Engineer
 
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Lectrik0/Lectrik0/output/snake-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Lectrik0/Lectrik0/output/snake.svg">
-  <img alt="A snake eating my GitHub contribution graph" src="https://raw.githubusercontent.com/Lectrik0/Lectrik0/output/snake.svg">
-</picture>
+<img src="dashboard.svg" alt="A terminal-style summary of my GitHub activity: a heatmap of the last year, my streaks and contributions per month" width="100%">
 
 <sub>🔒 Secure by design, not by accident.</sub>
 
