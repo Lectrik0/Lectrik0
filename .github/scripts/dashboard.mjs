@@ -173,14 +173,14 @@ export function render(days) {
     return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.accent : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
-  // where the busiest month's bar is, for the cat to hop onto
-  const busiest = { x: sx + Math.max(0, s.perMonth.findIndex(m => m.count === max)) * (bw + bgap) + bw / 2 };
+  // where each bar is, for the cat to hop onto
+  const barSpots = s.perMonth.map((m, i) => ({ x: sx + i * (bw + bgap) + bw / 2, top: cy + chartH - Math.max(2, Math.round((m.count / max) * chartH)) }));
   const H = Math.max(cy + chartH + 44, py + ROOM_H + 22);
   const cursorX = PAD + 128 + "whoami".length * 7.8 + 4;
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
   // Spider-Man and the cat share one timeline, so they can react to each other (see critters.mjs)
-  const scene = critters({ ground: H - 12, barX: busiest.x, barTop: cy, delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
+  const scene = critters({ ground: H - 12, bars: barSpots, seed: Number(new Date().toISOString().slice(0, 10).replace(/-/g, "")), delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
