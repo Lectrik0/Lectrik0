@@ -30,8 +30,57 @@ function fightClubPoster(x, y) {
     `<rect x="22" y="-6" width="16" height="6" fill="${P.gold}" opacity=".7"/></g>`;
 }
 
+// A 32 x 27 pixel certificate (2 px per pixel) for the AWS Certified Cloud Practitioner, stamped "in progress"
+// because that is where it is.
+const CG = { A: [".#.", "#.#", "###", "#.#", "#.#"], W: ["#...#", "#...#", "#.#.#", "#.#.#", ".#.#."], S: [".##", "#..", ".#.", "..#", "##."],
+  C: GLYPH.C, L: GLYPH.L, O: ["###", "#.#", "#.#", "#.#", "###"], U: GLYPH.U, D: ["##.", "#.#", "#.#", "#.#", "##."] };
+const CERT = { p: "#F1E6C8", f: "#8B6B3E", g: "#C9A54E", a: "#FF9900", t: "#3A2A12", m: "#9C8A64" };
+function certificate(x, y) {
+  const W = 32, H = 27, g = Array.from({ length: H }, () => Array(W).fill("p"));
+  const put = (c, r, ch) => { if (r >= 0 && r < H && c >= 0 && c < W) g[r][c] = ch; };
+  const word = (text, row, col, ch) => { let at = col;   // letters can be different widths
+    for (const letter of text) { CG[letter].forEach((line, r) => [...line].forEach((px, c) => px === "#" && put(at + c, row + r, ch))); at += CG[letter][0].length + 1; } };
+  for (let c = 0; c < W; c++) { put(c, 0, "f"); put(c, H - 1, "f"); put(c, 1, "g"); put(c, H - 2, "g"); }
+  for (let r = 0; r < H; r++) { put(0, r, "f"); put(W - 1, r, "f"); put(1, r, "g"); put(W - 2, r, "g"); }
+  word("AWS", 4, 9, "a"); word("CLOUD", 11, 6, "t");
+  for (let c = 6; c <= 25; c++) put(c, 18, "m");
+  for (let c = 9; c <= 22; c++) put(c, 20, "m");
+  for (const [c, r] of [[6, 22], [7, 21], [8, 22], [9, 21], [10, 22], [11, 21], [12, 22]]) put(c, r, "t");           // a signature
+  for (let r = 20; r <= 23; r++) for (let c = 22; c <= 27; c++) if (!((r === 20 || r === 23) && (c === 22 || c === 27))) put(c, r, "a");   // the seal
+  for (const [c, r] of [[23, 22], [24, 23], [26, 21]]) put(c, r, "p");
+  put(23, 25, "a"); put(26, 25, "a");
+  const rects = g.flatMap((row, r) => { const out = []; let c = 0;
+    while (c < W) { let e = c; while (e < W && row[e] === row[c]) e++;
+      if (row[c] !== "p") out.push(`<rect x="${c * 2}" y="${r * 2}" width="${(e - c) * 2}" height="2" fill="${CERT[row[c]]}"/>`); c = e; }
+    return out; }).join("");
+  return `<g transform="translate(${x} ${y})"><rect width="64" height="54" fill="${CERT.p}"/>${rects}` +
+    `<text transform="translate(7 49) rotate(-9)" font-size="5.5" font-weight="700" fill="#B23A2A" fill-opacity=".9">IN PROGRESS</text></g><rect x="${x - 2}" y="${y - 2}" width="9" height="5" fill="${P.gold}" opacity=".7" transform="rotate(-20 ${x + 2} ${y})"/>`;
+}
+
+// A book seen from the side, in 2 px pixels: a coloured spine with a band at the top and the title written
+// downwards in the pixel font (first word only, which is what fits). `x` is its left edge and `bottom` where it
+// stands on the shelf.
+const SG = { A: GLYPH_A(), T: GLYPH.T, O: ["###", "#.#", "#.#", "#.#", "###"], M: ["#.#", "###", "#.#", "#.#", "#.#"], I: GLYPH.I, C: GLYPH.C, L: GLYPH.L,
+  E: ["###", "#..", "##.", "#..", "###"], N: ["##.", "#.#", "#.#", "#.#", "#.#"], U: GLYPH.U, X: ["#.#", "#.#", ".#.", "#.#", "#.#"] };
+function GLYPH_A() { return [".#.", "#.#", "###", "#.#", "#.#"]; }
+function spine(x, bottom, { w, h, title, base, edge, ink, top, topRows, logo }) {
+  const g = Array.from({ length: h }, () => Array(w).fill(base));
+  for (let r = 0; r < h; r++) { g[r][0] = edge; g[r][w - 1] = edge; }
+  for (let r = 0; r < topRows; r++) for (let c = 0; c < w; c++) g[r][c] = top;
+  for (let c = 0; c < w; c++) g[h - 1][c] = edge;
+  if (logo) for (const [c, r] of [[4, 2], [3, 3], [4, 3], [5, 3], [4, 4]]) g[r][c] = "#FFFFFF";                      // a small diamond, like the series' logo
+  const first = Math.floor((w - 5) / 2);                                                                              // the title is 5 pixels wide once turned on its side
+  [...title].forEach((letter, k) => { const top0 = topRows + 2 + k * 4;                                                // read downwards, like a real spine
+    SG[letter].forEach((line, r) => [...line].forEach((px, c) => { if (px === "#") g[top0 + c][first + (4 - r)] = ink; })); });
+  const rects = g.flatMap((row, r) => { const out = []; let c = 0;
+    while (c < w) { let e = c; while (e < w && row[e] === row[c]) e++;
+      out.push(`<rect x="${x + c * 2}" y="${bottom - (h - r) * 2}" width="${(e - c) * 2}" height="2" fill="${row[c]}"/>`); c = e; }
+    return out; }).join("");
+  return rects;
+}
+
 export const ROOM_H = 330;
-export const ROOM_LABEL = "A cosy pixel room at night: a zero-trust poster, a pixel Fight Club poster, a shelf with a plant, rain on the window, a monitor with scrolling code and a PC tower with a glowing fan, a mug, a small succulent and a sleeping cat";
+export const ROOM_LABEL = "A cosy pixel room at night: a pixel AWS Cloud Practitioner certificate (in progress), a pixel Fight Club poster, a shelf with three real books and a plant, rain on the window, a monitor with scrolling code and a PC tower with a glowing fan, a mug, a small succulent and a sleeping cat";
 
 export const ROOM_CSS = `
 .room-rain{stroke:#7FA8E0;stroke-width:1;stroke-dasharray:3 9;animation:room-rain .55s linear infinite}@keyframes room-rain{to{stroke-dashoffset:-12}}
@@ -75,12 +124,9 @@ export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" 
 <g class="room-cat"><g transform="translate(0 -57)"><g class="room-breath"><ellipse cx="38" cy="187" rx="22" ry="10" fill="${P.orange}"/><circle cx="19" cy="184" r="8" fill="${P.orange}"/><path d="M13 179l1-8 6 5zM25 177l3-7 3 8z" fill="${P.orange}"/>
 <path d="M15 185q2 2 4 0M22 185q2 2 4 0" stroke="#7A3B10" stroke-width="1.4" fill="none"/><path d="M30 178q4 6 0 10M40 177q4 6 0 11" stroke="#C96A28" stroke-width="2" fill="none"/></g>
 <path class="room-tail" d="M58 188q10 2 12-6" stroke="${P.orange}" stroke-width="5" fill="none" stroke-linecap="round"/>
-<g fill="${P.text}" font-size="9" font-weight="700"><text class="room-z" x="22" y="170">z</text><text class="room-z" style="animation-delay:1.1s" x="26" y="166" font-size="7">z</text></g></g></g></g><rect x="22" y="14" width="64" height="54" rx="2" fill="#0A1220" stroke="#3A5078" stroke-width="2"/>
-<path d="M32 44a8 8 0 0 1 14-4 10 10 0 0 1 20 3 6 6 0 0 1 2 11H35a6 6 0 0 1-3-10z" fill="${P.accent}" opacity=".9"/>
-<rect x="50" y="42" width="10" height="9" rx="2" fill="#0A1220"/><path d="M52 42v-3a3 3 0 0 1 6 0v3" fill="none" stroke="#0A1220" stroke-width="2"/>
-<text x="54" y="62" font-size="7" font-weight="700" text-anchor="middle" fill="${P.text}">ZERO TRUST</text>
+<g fill="${P.text}" font-size="9" font-weight="700"><text class="room-z" x="22" y="170">z</text><text class="room-z" style="animation-delay:1.1s" x="26" y="166" font-size="7">z</text></g></g></g></g>${certificate(22, 14)}
 <rect x="20" y="12" width="9" height="5" fill="${P.gold}" opacity=".7" transform="rotate(-20 24 14)"/>
 <rect x="116" y="62" width="86" height="5" rx="1" fill="#2A3D63"/><path d="M124 67v7M194 67v7" stroke="#2A3D63" stroke-width="3"/>
-<rect x="122" y="42" width="7" height="20" fill="${P.purple}"/><rect x="130" y="46" width="6" height="16" fill="${P.orange}"/><rect x="137" y="40" width="7" height="22" fill="${P.accent}"/>
-<rect x="164" y="48" width="20" height="14" rx="2" fill="#C96A28"/><rect x="162" y="46" width="24" height="4" rx="1" fill="#E07B39"/>
-<g class="room-sway"><path d="M174 46c-10-4-14-12-12-22 8 2 14 10 12 22zM174 46c2-12 8-18 18-20-1 10-6 18-18 20zM174 46c-2-8-1-16 0-24 4 8 4 16 0 24z" fill="${P.ok}"/></g>${fightClubPoster(136, 106)}`;
+${spine(116, 62, { w: 9, h: 29, title: "ATOMIC", base: "#F2A33A", edge: "#C77A12", ink: "#3A2A12", top: "#3A2A12", topRows: 2 })}${spine(135, 62, { w: 8, h: 26, title: "CLEAN", base: "#EDEDED", edge: "#B8B8B8", ink: "#14090D", top: "#C0392B", topRows: 3 })}<g transform="rotate(4 162 62)">${spine(152, 62, { w: 9, h: 30, title: "LINUX", base: "#FFD83D", edge: "#C9A800", ink: "#14090D", top: "#14090D", topRows: 7, logo: true })}</g>
+<g transform="translate(12 0)"><rect x="164" y="48" width="20" height="14" rx="2" fill="#C96A28"/><rect x="162" y="46" width="24" height="4" rx="1" fill="#E07B39"/>
+<g class="room-sway"><path d="M174 46c-10-4-14-12-12-22 8 2 14 10 12 22zM174 46c2-12 8-18 18-20-1 10-6 18-18 20zM174 46c-2-8-1-16 0-24 4 8 4 16 0 24z" fill="${P.ok}"/></g></g>${fightClubPoster(136, 106)}`;

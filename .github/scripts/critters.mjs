@@ -32,6 +32,7 @@ const WALK = [
 const SIT = ["....o...o..", "....ooooo..", "....oeoeo..", "....oopoo..", "...ooooooo.", "...ooooooo.", "..oodoodooo", "..ooooooooo", "..ooooooooo", "..oo.oo.oo."];
 const PAW = ["...........", ".........oo", ".........oo", ".........o."];     // the raised paw, drawn over the sitting cat
 const LOCK = [".ggggg.", ".g...g.", ".g...g.", "yyyyyyy", "yyykyyy", "yyykyyy", "yyyyyyy"];
+const TAIL = ["o.", "o.", "oo"];
 const HEART = [".hh.hh.", "hhhhhhh", "hhhhhhh", ".hhhhh.", "..hhh..", "...h..."];
 
 const px = (rows, colors, size) => rows.flatMap((row, r) => { const out = []; let c = 0;
@@ -42,7 +43,7 @@ const px = (rows, colors, size) => rows.flatMap((row, r) => { const out = []; le
 const TOP = 36, LENGTH = 80, ANGLE = 35, SIN = Math.sin(ANGLE * Math.PI / 180);   // webs are fixed at the title bar (y = TOP)
 const SWING = 0.85, IDLE = 2.8, HOME = 832, STEP = 2 * LENGTH * SIN;                // seconds per swing, seconds hanging at home, home's x, distance of one swing
 const CP = 3, WALK_W = WALK[0][0].length * CP, SIT_W = SIT[0].length * CP, SIT_H = SIT.length * CP;
-const WEB = "#C9D1D9", CAT_VISITS = 2, TILE_VISITS = 2, WORDS = ["thud!", "locked.", "denied.", "nope."], clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const WEB = "#C9D1D9", CAT_VISITS = 2, TILE_VISITS = 2, CELL_VISITS = 1, WORDS = ["thud!", "locked.", "denied.", "nope."], clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 // a small seeded random generator, so a day's picture is always the same
 function random(seed) {
@@ -52,22 +53,23 @@ function random(seed) {
 
 // One visit, as times in seconds from the start of the visit. `target` is a bar ({x, top}) or a stat box ({x, y, w, h}).
 function plan(kind, target, rand) {
-  const tile = kind === "tile";
+  const tile = kind === "tile" || kind === "cell";
   let side = rand() < 0.5 ? 1 : -1, wanted;                                      // which side of the cat he hangs on...
-  if (tile) wanted = target.x + 24 + rand() * (target.w - 60);                  // ...or where along the box he drops
+  if (kind === "cell") wanted = target.x + 10;                                    // ...or just in front of a heatmap cell
+  else if (tile) wanted = target.x + 24 + rand() * (target.w - 60);              // ...or where along the box he drops
   else {
     wanted = target.x + (side === 1 ? 40 : -24);
     if (wanted > 780) wanted = target.x - 24;                                    // ...unless that runs out of room
     if (wanted < 130) wanted = target.x + 40;
   }
   const swings = []; let t = 0;
-  const add = s => { s.start = t; s.end = t += s.sec; swings.push(s); return s; };
+  const add = s => { s.flip = !s.idle && rand() < 0.3; s.start = t; s.end = t += s.sec; swings.push(s); return s; };
   add({ anchor: HOME, L: LENGTH, from: -6, to: 6, sec: IDLE, idle: true });
   let x = HOME;
   for (; x - wanted > 230; x -= STEP) add({ anchor: x - LENGTH * SIN, L: LENGTH, from: -ANGLE, to: ANGLE, sec: SWING });
   const L1 = clamp((x - wanted) / (2 * SIN), 40, 200), handX = x - 2 * L1 * SIN;
   add({ anchor: x - L1 * SIN, L: L1, from: -ANGLE, to: ANGLE, sec: SWING });
-  const hoverFor = tile ? 2.6 : 2.2;
+  const hoverFor = kind === "tile" ? 2.6 : kind === "cell" ? 1.8 : 2.2;
   const desc = [t, t + 0.7], hover = [t + 0.7, t + 0.7 + hoverFor], flick = [hover[1], hover[1] + 0.6], asc = [flick[1], flick[1] + 0.7], visit = [t, asc[1]];
   t = asc[1];
   x = handX;
@@ -76,26 +78,29 @@ function plan(kind, target, rand) {
   const Llast = clamp((HOME - x) / (2 * SIN), 30, 140);
   add({ anchor: x + Llast * SIN, L: Llast, from: ANGLE, to: -ANGLE, sec: SWING });
   const p = { kind, side, swings, handX, L1, desc, hover, flick, asc, visit, total: t };
-  if (tile) {
+  if (kind === "cell") {
+    Object.assign(p, { cell: target, hangY: target.y - 8, away: rand() < 0.5 ? 12 : -12 });
+  } else if (kind === "tile") {
     Object.assign(p, { tile: target, hangY: target.y + target.h / 2 - 18, away: rand() < 0.5 ? 12 : -12, word: WORDS[Math.floor(rand() * WORDS.length)] });
   } else {
     const sitTop = target.top - SIT_H;
     Object.assign(p, { hangY: sitTop - 4, away: -side * 12, sitTop, sitX: target.x - SIT_W / 2, barX: target.x, barTop: target.top,
-      tSit: desc[0], tJump: desc[0] - 0.7, tIn: desc[0] - 3.1, tDown: flick[1] + 1.8, tOff: flick[1] + 2.5, tGone: flick[1] + 5.1 });
+      tSit: desc[0], tJump: desc[0] - 0.7, tIn: desc[0] - 3.1, tDown: flick[1] + 1.8, tOff: flick[1] + 2.4, tGone: flick[1] + 4.0 });
   }
+  p.hangY = Math.max(p.hangY, TOP + L1 + 12);   // he always ends up lower than where the swing left him
   p.LV = p.hangY - TOP;
   return p;
 }
 
 // `ground` is the y of the cat's feet on the floor; `bars` are the middle and the top of each bar of the monthly chart;
-// `tiles` are the stat boxes ({x, y, w, h});
+// `tiles` are the stat boxes ({x, y, w, h}); `cells` are the heatmap cells with something in them ({x, y});
 // `delay` holds everything back (in its first, hidden state) until the dashboard has finished building itself
-export function critters({ ground, bars, tiles, delay = 0, seed = 1 }) {
+export function critters({ ground, bars, tiles, cells = [], delay = 0, seed = 1 }) {
   const rand = random(seed);
   const shuffle = list => list.map(v => [rand(), v]).sort((p, q) => p[0] - q[0]).map(([, v]) => v);
-  const kinds = shuffle([...Array(CAT_VISITS).fill("cat"), ...Array(TILE_VISITS).fill("tile")]);
-  const barPicks = shuffle(bars), tilePicks = shuffle(tiles);
-  const plans = kinds.map(kind => plan(kind, kind === "cat" ? barPicks.pop() : tilePicks.pop(), rand));
+  const kinds = shuffle([...Array(CAT_VISITS).fill("cat"), ...Array(TILE_VISITS).fill("tile"), ...Array(cells.length ? CELL_VISITS : 0).fill("cell")]);
+  const barPicks = shuffle(bars), tilePicks = shuffle(tiles), cellPicks = shuffle(cells);
+  const plans = kinds.map(kind => plan(kind, kind === "cat" ? barPicks.pop() : kind === "tile" ? tilePicks.pop() : { ...cellPicks.pop(), w: 11, h: 11 }, rand));
   let TOTAL = 0; plans.forEach(p => { p.offset = TOTAL; TOTAL += p.total; });
 
   /* ---- keyframes: times in seconds -> percentages of the whole loop ---- */
@@ -120,13 +125,14 @@ export function critters({ ground, bars, tiles, delay = 0, seed = 1 }) {
       css.push(frames(name, [[0, first ? show(s.from) : hide(s.from)], [Math.max(0, at0(s.start) - 0.01), hide(s.from)], [at0(s.start), show(s.from)], [at0(s.end), show(s.to)],
         ...(last ? [] : [[at0(s.end) + 0.01, hide(s.to)]])]));
       if (!s.idle) css.push(frames(`th${e}_${i}`, [[0, "opacity:0"], [at0(s.start), "opacity:0;transform:scale(.5)"], [at0(s.start) + 0.2, "opacity:1;transform:scale(1)"], [at0(s.start) + 0.6, "opacity:1"], [at0(s.start) + 0.8, "opacity:0"]]));
+      if (s.flip) css.push(frames(`fl${e}_${i}`, [[0, "transform:rotate(0deg)"], [at0(s.start) + 0.15, "transform:rotate(0deg)"], [at0(s.end) - 0.1, "transform:rotate(360deg)"], [at0(s.end) + 0.02, "transform:rotate(360deg)"], [at0(s.end) + 0.03, "transform:rotate(0deg)"]]));
       const y = TOP + s.L, ax = s.anchor.toFixed(1);
-      svg.push(`<g class="sp${first ? "" : " sp-go"}" style="animation-name:${name};transform-origin:${ax}px ${TOP}px"><path d="M${ax} ${TOP}V${y.toFixed(1)}" stroke="${WEB}" stroke-opacity=".75" stroke-width="1"/><use href="#spidey" x="${ax}" y="${y.toFixed(1)}"/>` +
+      svg.push(`<g class="sp${first ? "" : " sp-go"}" style="animation-name:${name};transform-origin:${ax}px ${TOP}px"><path d="M${ax} ${TOP}V${y.toFixed(1)}" stroke="${WEB}" stroke-opacity=".75" stroke-width="1"/>${s.flip ? `<g class="sp-flip" style="animation-name:fl${e}_${i}">` : ""}<use href="#spidey" x="${ax}" y="${y.toFixed(1)}"/>${s.flip ? "</g>" : ""}` +
         (s.idle ? "" : `<text class="sp-t" style="animation-name:th${e}_${i}" x="${ax}" y="${TOP + 22}" font-size="10" font-weight="700" font-style="italic" text-anchor="middle" fill="#A991FF">thwip!</text>`) + `</g>`);
     });
 
     /* the visit: he drops on a long web (beside the cat, or in front of a stat box), sways, flicks away, and is pulled up */
-    const away = p.away, sway = p.kind === "tile" ? 0.35 : 0.7, s0 = p.L1 / p.LV, dy = -(p.LV - p.L1), hx = p.handX.toFixed(1);
+    const away = p.away, sway = p.kind === "cat" ? 0.7 : 0.35, s0 = p.L1 / p.LV, dy = -(p.LV - p.L1), hx = p.handX.toFixed(1);
     const [d0, d1] = p.desc.map(at0), [h0] = p.hover.map(at0), [f0, f1] = p.flick.map(at0), [a0, a1] = p.asc.map(at0), v0 = at0(p.visit[0]);
     css.push(frames(`sv${e}`, [[0, "opacity:0;transform:rotate(0deg)"], [v0 - 0.01, "opacity:0;transform:rotate(0deg)"], [v0, "opacity:1;transform:rotate(0deg)"], [h0, "opacity:1;transform:rotate(0deg)"],
       [h0 + 0.55, `opacity:1;transform:rotate(${sway}deg)`], [h0 + 1.1, `opacity:1;transform:rotate(${-sway}deg)`], [h0 + 1.65, `opacity:1;transform:rotate(${sway}deg)`], [f0, "opacity:1;transform:rotate(0deg)"],
@@ -139,7 +145,14 @@ export function critters({ ground, bars, tiles, delay = 0, seed = 1 }) {
     svg.push(`<g class="sp sp-go" style="animation-name:sv${e};transform-origin:${hx}px ${TOP}px"><path class="sp" style="animation-name:svw${e};transform-origin:${hx}px ${TOP}px" d="M${hx} ${TOP}V${p.hangY}" stroke="${WEB}" stroke-opacity=".75" stroke-width="1"/>` +
       `<g class="sp" style="animation-name:svb${e}"><use href="#spidey" x="${hx}" y="${p.hangY}"/></g></g>`);
 
-    if (p.kind === "tile") {
+    if (p.kind === "cell") {
+      /* the heatmap cell: he tags it with a web, it flashes, and a "+1" floats up */
+      const c = p.cell;
+      css.push(gate(`wc-flash${e}`, "opacity:1", "opacity:0", [[h0 + 0.3, h0 + 0.55], [h0 + 0.75, h0 + 1.0]]));
+      css.push(frames(`wc-plus${e}`, [[0, "opacity:0;transform:translateY(0)"], [h0 + 0.5, "opacity:0;transform:translateY(0)"], [h0 + 0.6, "opacity:1;transform:translateY(0)"], [f1, "opacity:0;transform:translateY(-20px)"]]));
+      svg.push(`<g class="wc"><g class="wc-gate" style="animation-name:wc-flash${e}"><rect x="${c.x}" y="${c.y}" width="11" height="11" rx="2" fill="#FFFFFF"/></g>` +
+        `<g class="wc-glide" style="animation-name:wc-plus${e}"><text x="${c.x + 5.5}" y="${c.y - 2}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFD58A">+1</text></g></g>`);
+    } else if (p.kind === "tile") {
       /* the stat box: it shakes while he pounds on it, and a padlock and a word pop up */
       const t = p.tile, i = tiles.indexOf(t);
       (shakes[i] ||= []).push([h0 + 0.2, f0 - 0.1]);
@@ -156,9 +169,14 @@ export function critters({ ground, bars, tiles, delay = 0, seed = 1 }) {
       deskWindows.push([at0(p.tIn) - 0.1, at0(p.tGone) + 0.2]);
       css.push(gate(`wc-showsit${e}`, "opacity:1", "opacity:0", [[at0(p.tSit), at0(p.tDown)]]));
       css.push(gate(`wc-paw${e}`, "opacity:1", "opacity:0", [[d1, f1]]));
+      css.push(frames(`wc-land${e}`, [[0, "transform:scale(1,1)"], [at0(p.tSit) - 0.01, "transform:scale(1.22,.78)"], [at0(p.tSit) + 0.25, "transform:scale(1,1)"]]));
+      css.push(gate(`wc-fly${e}`, "opacity:1", "opacity:0", [[d1 - 0.2, f0 + 0.2]]));
       css.push(gate(`wc-hearts${e}`, "opacity:1", "opacity:0", [[f0, at0(p.tDown)]]));
       const mirror = p.side === -1 ? `translate(${p.sitX + SIT_W} ${p.sitTop}) scale(-1 1)` : `translate(${p.sitX} ${p.sitTop})`;
-      svg.push(`<g class="wc"><g transform="${mirror}"><g class="wc-gate" style="animation-name:wc-showsit${e}">${px(SIT, C_COLORS, CP)}<g class="wc-gate" style="animation-name:wc-paw${e}"><g class="wc-swat">${px(PAW, C_COLORS, CP)}</g></g></g></g>` +
+      svg.push(`<g class="wc"><g transform="${mirror}"><g class="wc-gate" style="animation-name:wc-showsit${e}"><g class="wc-land" style="animation-name:wc-land${e}">${px(SIT, C_COLORS, CP)}<g class="wc-tail" transform="translate(0 ${6 * CP})">${px(TAIL, C_COLORS, CP)}</g>` +
+        `<g class="wc-blink"><rect x="${5 * CP}" y="${2 * CP}" width="${CP}" height="${CP}" fill="#F0883E"/><rect x="${7 * CP}" y="${2 * CP}" width="${CP}" height="${CP}" fill="#F0883E"/></g>` +
+        `<g class="wc-gate" style="animation-name:wc-paw${e}"><g class="wc-swat">${px(PAW, C_COLORS, CP)}</g></g></g></g></g>` +
+        `<g class="wc-gate" style="animation-name:wc-fly${e}"><g transform="translate(${(p.sitX + 28).toFixed(1)} ${(p.sitTop - 4).toFixed(1)})"><g class="wc-buzz"><circle r="1.5" fill="#C9D1D9"/><circle cx="-2" cy="-1.5" r="1.1" fill="#8B949E"/><circle cx="2" cy="-1.5" r="1.1" fill="#8B949E"/></g></g></g>` +
         `<g class="wc-gate" style="animation-name:wc-hearts${e}"><g transform="translate(${p.sitX + SIT_W - 4} ${p.sitTop - 18})"><g class="wc-heart">${px(HEART, C_COLORS, 2)}</g></g>` +
         `<g transform="translate(${p.sitX - 8} ${p.sitTop - 8})"><g class="wc-heart" style="animation-delay:-2s">${px(HEART, C_COLORS, 2)}</g></g></g></g>`);
     }
@@ -178,12 +196,16 @@ export function critters({ ground, bars, tiles, delay = 0, seed = 1 }) {
   css.push(gate("room-cat", "opacity:0", "opacity:1", deskWindows));
   css.push(`.room-cat{animation:room-cat ${TOTAL.toFixed(2)}s steps(1) infinite}`);
   css.push(`.wc-f1{animation:wc-f1 .4s steps(1) infinite}@keyframes wc-f1{50%{opacity:0}}.wc-f2{animation:wc-f2 .4s steps(1) infinite}@keyframes wc-f2{0%{opacity:0}50%{opacity:1}}`);
+  css.push(`.wc-blink{opacity:0;animation:wc-blink 2.6s steps(1) infinite}@keyframes wc-blink{0%,90%{opacity:0}91%,96%{opacity:1}97%,100%{opacity:0}}`);
+  css.push(`.wc-tail{transform-box:fill-box;transform-origin:100% 100%;animation:wc-tail .5s ease-in-out infinite alternate}@keyframes wc-tail{from{transform:rotate(-16deg)}to{transform:rotate(18deg)}}`);
+  css.push(`.wc-buzz{animation:wc-buzz .9s linear infinite}@keyframes wc-buzz{0%{transform:translate(0,0)}25%{transform:translate(13px,-6px)}50%{transform:translate(4px,-15px)}75%{transform:translate(-9px,-7px)}100%{transform:translate(0,0)}}`);
+  css.push(`.wc-land,.wc-glide,.sp-flip{animation-duration:${TOTAL.toFixed(2)}s;animation-iteration-count:infinite}.wc-land{transform-box:fill-box;transform-origin:50% 100%;animation-timing-function:ease-out}.wc-glide{animation-timing-function:ease-out}.sp-flip{transform-box:fill-box;transform-origin:center;animation-timing-function:linear}`);
   css.push(`.wc-swat{animation:wc-swat .35s steps(1) infinite}@keyframes wc-swat{50%{opacity:0}}`);
   css.push(`.wc-heart{opacity:0;animation:wc-heart 4s ease-out infinite}@keyframes wc-heart{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}`);
   css.push(`.sp-t{opacity:0;transform-box:fill-box;transform-origin:center;animation-duration:${TOTAL.toFixed(2)}s;animation-iteration-count:infinite;animation-timing-function:ease-out}`);
   css.push(`@media (prefers-reduced-motion:reduce){.sp-go,.wc{display:none}}`);
   // last, so that no shorthand above can reset it
-  css.push(`.sp,.wc-walk,.wc-gate,.sp-t,.tile,.room-cat{animation-delay:${delay}s;animation-fill-mode:backwards}`);
+  css.push(`.sp,.wc-walk,.wc-gate,.wc-land,.wc-glide,.sp-flip,.sp-t,.tile,.room-cat{animation-delay:${delay}s;animation-fill-mode:backwards}`);
 
   const sprite = px(SPIDEY, S_COLORS, 2).replace(/x="(\d+)"/g, (_, v) => `x="${+v - 20}"`);
   const walker = `<g class="wc"><g class="wc-walk"><g transform="translate(0 ${ground - WALK[0].length * CP})"><g class="wc-gate" style="animation-name:wc-showwalk"><g class="wc-f1">${px(WALK[0], C_COLORS, CP)}</g><g class="wc-f2">${px(WALK[1], C_COLORS, CP)}</g></g></g></g></g>`;

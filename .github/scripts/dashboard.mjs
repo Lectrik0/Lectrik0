@@ -130,11 +130,13 @@ export function render(days) {
     `${text(PAD + 110, y, "$", { fill: C.dim })}${text(PAD + 128, y, cmd, { weight: 600 })}`, `;--d:${(0.5 + cmd.length * 0.05).toFixed(2)}s;--n:${cmd.length + 14}`);
 
   // heatmap: columns are weeks (Sunday first), rows are weekdays; each column fades in a moment after the last
+  const cellSpots = [];   // the cells with something in them, for Spider-Man to tag
   const gx = PAD, gy = 112, first = day(days[0].date), columns = new Map(), labels = [];
   let lastMonth = -1;
   days.forEach(d => {
     const col = Math.floor((Math.round((day(d.date) - first) / 864e5) + days[0].weekday) / 7);
     const x = gx + col * STEP, y = gy + d.weekday * STEP;
+    if (d.count > 0) cellSpots.push({ x, y });
     columns.set(col, (columns.get(col) || "") + `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${C.cells[level(d.count)]}"/>`);
     const m = day(d.date).getUTCMonth();
     if (d.weekday === 0 && m !== lastMonth && col < 51) { labels.push(at("fade", 1.2 + col * 0.03, text(x, gy - 8, MONTHS[m], { fill: C.dim, size: 11 }))); lastMonth = m; }
@@ -181,7 +183,7 @@ export function render(days) {
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
   // Spider-Man and the cat share one timeline, so they can react to each other (see critters.mjs)
-  const scene = critters({ ground: H - 12, bars: barSpots, tiles: tileSpots, seed: Number(new Date().toISOString().slice(0, 10).replace(/-/g, "")), delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
+  const scene = critters({ ground: H - 12, bars: barSpots, tiles: tileSpots, cells: cellSpots, seed: Number(new Date().toISOString().slice(0, 10).replace(/-/g, "")), delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
