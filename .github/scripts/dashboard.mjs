@@ -9,6 +9,7 @@
 //
 // Usage: node .github/scripts/dashboard.mjs [calendar.json]   (a saved calendar instead of the live one)
 import { readFileSync, writeFileSync } from "node:fs";
+import { ROOM_CSS, ROOM_LABEL, roomBody } from "./room.mjs";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
@@ -102,56 +103,21 @@ const FONT = `ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono',
 
 // "ALI" as a bitmap, drawn with rectangles so it looks the same everywhere (no font needed)
 // The dashboard builds itself when it loads: the prompts type, the heatmap fills in column by column, the
-// cloud diagram's boxes pop in and data starts flowing along its lines, then the tiles pop in and the bars
-// grow. Times are in seconds. Without animation support (or with reduced motion) everything simply shows.
+// lofi room fades in (rain falling, code scrolling, steam rising, the cat's tail swishing), then the tiles
+// pop in and the bars grow. Times are in seconds. Without animation support (or with reduced motion) everything simply shows.
 // animation support (or with reduced motion) everything simply shows.
 const CSS = `
 .fade{animation:fade .5s ease-out both}
 .pop{animation:pop .45s cubic-bezier(.3,1.5,.5,1) both;transform-box:fill-box;transform-origin:center}
 .type{animation:type var(--d) steps(var(--n)) both}
-.flow{animation:flow 1.2s linear infinite}
 .grow{animation:grow .7s cubic-bezier(.2,.8,.2,1) both;transform-box:fill-box;transform-origin:50% 100%}
 @keyframes fade{from{opacity:0}}
 @keyframes pop{from{opacity:0;transform:scale(.4)}}
 @keyframes type{from{clip-path:inset(-3px 100% -3px 0)}}
 @keyframes grow{from{transform:scaleY(0)}}
-@keyframes flow{to{stroke-dashoffset:-14.1}}
+${ROOM_CSS}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}`;
 const at = (cls, delay, inner, extra = "") => `<g class="${cls}" style="animation-delay:${delay.toFixed(2)}s${extra}">${inner}</g>`;
-
-// A small picture of how my site is meant to run on AWS: visitors reach CloudFront, which reads a private S3
-// bucket; GitHub Actions gets a short-lived token (OIDC) for an IAM role that deploys to the bucket.
-// The dots travelling along the lines are dashes sliding along each path.
-const ICON = {
-  users: `<circle cy="-14" r="4.5" fill="${C.accent}"/><path d="M-9 2a9 9 0 0 1 18 0z" fill="${C.accent}"/>`,
-  cdn: `<g fill="none" stroke="${C.accent}" stroke-width="1.6"><circle cy="-8" r="10"/><ellipse cy="-8" rx="4.5" ry="10"/><path d="M-10 -8h20"/></g>`,
-  bucket: `<g fill="none" stroke="#F0883E" stroke-width="1.6"><path d="M-10 -16h20l-3 20h-14z" fill="#F0883E" fill-opacity=".25"/><ellipse cy="-16" rx="10" ry="3"/></g>`,
-  actions: `<rect x="-10" y="-18" width="20" height="20" rx="4" fill="none" stroke="${C.ok}" stroke-width="1.6"/><path d="M-3 -13l8 5-8 5z" fill="${C.ok}"/>`,
-  iam: `<g fill="none" stroke="#A991FF" stroke-width="1.6" stroke-linejoin="round"><path d="M0 -19l10 4v8c0 6-4 9-10 11-6-2-10-5-10-11v-8z"/><path d="M-4 -8l3 3 6-7"/></g>`
-};
-
-function cloudDiagram(ox, oy, t0) {
-  const place = (x, y, inner) => `<g transform="translate(${ox + x} ${oy + y})">${inner}</g>`;
-  const node = (cx, cy, label, icon, delay) => at("pop", delay, place(cx, cy,
-    `<rect x="-32" y="-29" width="64" height="58" rx="8" fill="${C.bar}" stroke="${C.line}"/>${ICON[icon]}` +
-    `<text y="21" text-anchor="middle" font-size="9.5" fill="${C.text}">${label}</text>`));
-  const edge = (x1, y1, x2, y2, color, label, lx, ly, anchor, delay) => {
-    const angle = Math.round(Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI), d = `M${ox + x1} ${oy + y1}L${ox + x2} ${oy + y2}`;
-    return at("fade", delay, `<path d="${d}" stroke="${C.line}" stroke-width="1.4" fill="none"/>` +
-      `<path d="M-5 -3.5L2 0-5 3.5z" fill="${color}" transform="translate(${ox + x2} ${oy + y2}) rotate(${angle})"/>` +
-      `<path class="flow" d="${d}" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 14" fill="none"/>` +
-      `<text x="${ox + lx}" y="${oy + ly}" font-size="8.5" fill="${color}" text-anchor="${anchor}">${label}</text>`);
-  };
-  return at("fade", t0, `<rect x="${ox + 108}" y="${oy}" width="112" height="250" rx="10" fill="none" stroke="${C.line}" stroke-dasharray="4 4"/>` +
-      `<text x="${ox + 117}" y="${oy + 12}" font-size="8.5" fill="${C.dim}">aws</text>`) +
-    node(40, 56, "users", "users", t0 + 0.2) + node(163, 56, "CloudFront", "cdn", t0 + 0.4) +
-    node(163, 138, "S3 bucket", "bucket", t0 + 0.6) +
-    node(40, 220, "Actions", "actions", t0 + 0.8) + node(163, 220, "IAM role", "iam", t0 + 1.0) +
-    edge(72, 56, 131, 56, C.accent, "HTTPS", 101, 49, "middle", t0 + 1.2) +
-    edge(163, 85, 163, 109, C.accent, "private", 170, 100, "start", t0 + 1.4) +
-    edge(72, 220, 131, 220, "#A991FF", "OIDC", 101, 213, "middle", t0 + 1.6) +
-    edge(163, 191, 163, 167, "#A991FF", "deploy", 170, 182, "start", t0 + 1.8);
-}
 
 export function render(days) {
   const s = stats(days), level = levels(days);
@@ -180,9 +146,9 @@ export function render(days) {
     text(legendX + 14 + 5 * STEP, heatBottom + 22, "More", { fill: C.dim, size: 11 }));
   const caption = at("fade", heatEnd, text(PAD, heatBottom + 22, `${s.total} contributions in the last year`, { fill: C.dim, size: 12 }));
 
-  // whoami: the cloud diagram on the left, the intro, tiles and monthly bars on the right
+  // whoami: the lofi room on the left, the intro, tiles and monthly bars on the right
   const py = heatBottom + 88, whoamiAt = heatEnd + 0.2, shown = whoamiAt + 0.5 + "whoami".length * 0.05 + 0.1;
-  const diagram = cloudDiagram(PAD, py - 2, shown);
+  const room = at("fade", shown, `<g transform="translate(${PAD} ${py - 2})"><rect width="220" height="250" rx="10" fill="#0F1A2E" stroke="${C.line}"/>${roomBody()}</g>`);
   const sx = 290, infoY = py + 14;
   const info = ME.lines.map(([k, v], i) => at("fade", shown + 0.4 + i * 0.12, text(sx, infoY + i * 18, k, { fill: C.dim }) + text(sx + 64, infoY + i * 18, v))).join("");
   const sw = Math.floor((W - PAD - sx - 20) / 3), sh = 62, tilesTop = infoY + ME.lines.length * 18 + 4;
@@ -213,6 +179,7 @@ export function render(days) {
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
+<desc>${esc(`The picture on the left: ${ROOM_LABEL}.`)}</desc>
 <style>${CSS}</style>
 <rect width="${W}" height="${H}" rx="10" fill="${C.bg}" stroke="${C.line}"/>
 <path d="M0 10a10 10 0 0 1 10-10h${W - 20}a10 10 0 0 1 10 10v26H0z" fill="${C.bar}"/>
@@ -221,7 +188,7 @@ ${text(W / 2, 22, `${ME.user}@github: ~`, { fill: C.dim, size: 12, anchor: "midd
 ${prompt(66, "./contributions.sh", 0.2)}
 ${labels.join("")}${heat}${legend}${caption}
 ${prompt(py - 22, "whoami", whoamiAt)}${cursor}
-${diagram}${info}${tiles}${bars}
+${room}${info}${tiles}${bars}
 </svg>
 `;
 }
