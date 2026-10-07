@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { ROOM_CSS, ROOM_H, ROOM_LABEL, roomBody } from "./room.mjs";
 import { SPIDER_CSS, spiderman } from "./spiderman.mjs";
+import { WANDER_CSS, wanderingCat } from "./wanderer.mjs";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
@@ -116,7 +117,7 @@ const CSS = `
 @keyframes pop{from{opacity:0;transform:scale(.4)}}
 @keyframes type{from{clip-path:inset(-3px 100% -3px 0)}}
 @keyframes grow{from{transform:scaleY(0)}}
-${ROOM_CSS}${SPIDER_CSS}
+${ROOM_CSS}${SPIDER_CSS}${WANDER_CSS}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}`;
 const at = (cls, delay, inner, extra = "") => `<g class="${cls}" style="animation-delay:${delay.toFixed(2)}s${extra}">${inner}</g>`;
 
@@ -173,8 +174,8 @@ export function render(days) {
     return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.accent : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
-  // Spider-Man hangs from the window's title bar in the top right corner, beside the heatmap
-  const spidey = at("fade", 0.6, spiderman(W - PAD - 40, 74, 36));
+  // Spider-Man hangs from the title bar and swings across the top; the cat wanders along the bottom edge
+  const spidey = at("fade", 0.6, spiderman());
   const H = Math.max(cy + chartH + 44, py + ROOM_H + 22);
   const cursorX = PAD + 128 + "whoami".length * 7.8 + 4;
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
@@ -191,7 +192,7 @@ ${text(W / 2, 22, `${ME.user}@github: ~`, { fill: C.dim, size: 12, anchor: "midd
 ${prompt(66, "./contributions.sh", 0.2)}
 ${labels.join("")}${heat}${legend}${caption}
 ${prompt(py - 22, "whoami", whoamiAt)}${cursor}
-${room}${info}${tiles}${bars}${spidey}
+${room}${info}${tiles}${bars}${spidey}${wanderingCat(H - 12)}
 </svg>
 `;
 }
