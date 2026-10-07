@@ -10,8 +10,7 @@
 // Usage: node .github/scripts/dashboard.mjs [calendar.json]   (a saved calendar instead of the live one)
 import { readFileSync, writeFileSync } from "node:fs";
 import { ROOM_CSS, ROOM_H, ROOM_LABEL, roomBody } from "./room.mjs";
-import { SPIDER_CSS, spiderman } from "./spiderman.mjs";
-import { wanderCss, wanderingCat } from "./wanderer.mjs";
+import { critters } from "./critters.mjs";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
@@ -117,7 +116,7 @@ const CSS = `
 @keyframes pop{from{opacity:0;transform:scale(.4)}}
 @keyframes type{from{clip-path:inset(-3px 100% -3px 0)}}
 @keyframes grow{from{transform:scaleY(0)}}
-${ROOM_CSS}${SPIDER_CSS}
+${ROOM_CSS}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}`;
 const at = (cls, delay, inner, extra = "") => `<g class="${cls}" style="animation-delay:${delay.toFixed(2)}s${extra}">${inner}</g>`;
 
@@ -174,19 +173,19 @@ export function render(days) {
     return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.accent : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
-  // Spider-Man hangs from the title bar and swings across the top; the cat wanders along the bottom edge
-  const spidey = at("fade", 0.6, spiderman());
   // where the busiest month's bar is, for the cat to hop onto
   const busiest = { x: sx + Math.max(0, s.perMonth.findIndex(m => m.count === max)) * (bw + bgap) + bw / 2 };
   const H = Math.max(cy + chartH + 44, py + ROOM_H + 22);
   const cursorX = PAD + 128 + "whoami".length * 7.8 + 4;
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
+  // Spider-Man and the cat share one timeline, so they can react to each other (see critters.mjs)
+  const scene = critters({ ground: H - 12, barX: busiest.x, barTop: cy, delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
 <desc>${esc(`The picture on the left: ${ROOM_LABEL}.`)}</desc>
-<style>${CSS}${wanderCss(H - 12, busiest.x, cy)}</style>
+<style>${CSS}${scene.css}</style>
 <rect width="${W}" height="${H}" rx="10" fill="${C.bg}" stroke="${C.line}"/>
 <path d="M0 10a10 10 0 0 1 10-10h${W - 20}a10 10 0 0 1 10 10v26H0z" fill="${C.bar}"/>
 <circle cx="22" cy="18" r="5.5" fill="#FF5F56"/><circle cx="42" cy="18" r="5.5" fill="#FFBD2E"/><circle cx="62" cy="18" r="5.5" fill="#27C93F"/>
@@ -194,7 +193,7 @@ ${text(W / 2, 22, `${ME.user}@github: ~`, { fill: C.dim, size: 12, anchor: "midd
 ${prompt(66, "./contributions.sh", 0.2)}
 ${labels.join("")}${heat}${legend}${caption}
 ${prompt(py - 22, "whoami", whoamiAt)}${cursor}
-${room}${info}${tiles}${bars}${spidey}${wanderingCat(H - 12, busiest.x, cy)}
+${room}${info}${tiles}${bars}${scene.svg}
 </svg>
 `;
 }

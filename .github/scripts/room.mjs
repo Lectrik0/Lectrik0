@@ -31,7 +31,7 @@ function fightClubPoster(x, y) {
 }
 
 export const ROOM_H = 330;
-export const ROOM_LABEL = "A cosy pixel room at night: a zero-trust poster, a pixel Fight Club poster, a shelf with a plant, rain on the window, a monitor with scrolling code, a mug, a small succulent and a sleeping cat";
+export const ROOM_LABEL = "A cosy pixel room at night: a zero-trust poster, a pixel Fight Club poster, a shelf with a plant, rain on the window, a monitor with scrolling code and a PC tower with a glowing fan, a mug, a small succulent and a sleeping cat";
 
 export const ROOM_CSS = `
 .room-rain{stroke:#7FA8E0;stroke-width:1;stroke-dasharray:3 9;animation:room-rain .55s linear infinite}@keyframes room-rain{to{stroke-dashoffset:-12}}
@@ -43,7 +43,9 @@ export const ROOM_CSS = `
 .room-tw{animation:room-tw 3s steps(3) infinite}@keyframes room-tw{50%{opacity:.25}}
 .room-breath{transform-box:fill-box;transform-origin:50% 100%;animation:room-br 3s ease-in-out infinite alternate}@keyframes room-br{to{transform:scaleY(1.07)}}
 .room-sway{transform-box:fill-box;transform-origin:50% 100%;animation:room-sway 3.4s ease-in-out infinite alternate}@keyframes room-sway{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
-.room-cat{animation:room-cat 24s steps(1) infinite}@keyframes room-cat{0%{opacity:1}2%{opacity:0}77%{opacity:1}}`;
+.room-fan{transform-box:fill-box;transform-origin:center;animation:room-fan 1.1s linear infinite}@keyframes room-fan{to{transform:rotate(360deg)}}
+.room-rgb{animation:room-rgb 5s linear infinite}@keyframes room-rgb{0%,100%{fill:#00C2FF}33%{fill:#A991FF}66%{fill:#3FB950}}
+.room-led{animation:room-led 1.6s steps(1) infinite}@keyframes room-led{50%{opacity:.3}}`;
 
 export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" width="218" height="198" rx="9" fill="#0F1A2E"/>
 <clipPath id="room-w"><rect x="18" y="22" width="100" height="84" rx="3"/></clipPath>
@@ -63,10 +65,17 @@ export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" 
 <rect x="131" y="187" width="11" height="9" rx="2" fill="#C96A28"/><g class="room-sway"><ellipse cx="133" cy="184" rx="3" ry="6" fill="#3FB950" transform="rotate(-22 133 184)"/><ellipse cx="136.5" cy="182" rx="3" ry="7" fill="#2E8B3F"/><ellipse cx="140" cy="184" rx="3" ry="6" fill="#3FB950" transform="rotate(22 140 184)"/></g><ellipse cx="110" cy="188" rx="46" ry="6" fill="${P.accent}" opacity=".06"/>
 <rect x="150" y="180" width="16" height="16" rx="3" fill="${P.orange}"/><path d="M166 184h4a4 4 0 0 1 0 9h-4" stroke="${P.orange}" stroke-width="2.4" fill="none"/>
 <g stroke="#C9D1D9" stroke-width="1.6" fill="none" stroke-linecap="round"><path class="room-steam" d="M154 176q-3-4 0-8t0-6"/><path class="room-steam" style="animation-delay:.9s" d="M159 176q-3-4 0-8t0-6"/><path class="room-steam" style="animation-delay:1.8s" d="M164 176q-3-4 0-8t0-6"/></g>
-<g class="room-cat"><g class="room-breath"><ellipse cx="38" cy="187" rx="22" ry="10" fill="${P.orange}"/><circle cx="19" cy="184" r="8" fill="${P.orange}"/><path d="M13 179l1-8 6 5zM25 177l3-7 3 8z" fill="${P.orange}"/>
+<rect x="22" y="140" width="34" height="56" rx="3" fill="#24344F" stroke="#3A5078" stroke-width="2"/>
+<rect x="26" y="145" width="26" height="4" rx="1" fill="#0A1220"/><rect x="26" y="152" width="26" height="4" rx="1" fill="#0A1220"/>
+<circle cx="39" cy="174" r="10" fill="#0A1220" stroke="#3A5078" stroke-width="1.5"/>
+<g class="room-fan"><path d="M39 174q-7-9 0-9zM39 174q9-7 9 0zM39 174q7 9 0 9zM39 174q-9 7-9 0z" class="room-rgb"/></g>
+<circle cx="39" cy="174" r="2.2" fill="#24344F"/>
+<circle class="room-led" cx="48" cy="190" r="2.2" fill="${P.ok}"/><path d="M26 189h12M26 192h12" stroke="#0A1220" stroke-width="1.5"/>
+<path d="M56 190q24 10 48 4" stroke="#0F1A2E" stroke-width="2.5" fill="none"/>
+<g class="room-cat"><g transform="translate(0 -57)"><g class="room-breath"><ellipse cx="38" cy="187" rx="22" ry="10" fill="${P.orange}"/><circle cx="19" cy="184" r="8" fill="${P.orange}"/><path d="M13 179l1-8 6 5zM25 177l3-7 3 8z" fill="${P.orange}"/>
 <path d="M15 185q2 2 4 0M22 185q2 2 4 0" stroke="#7A3B10" stroke-width="1.4" fill="none"/><path d="M30 178q4 6 0 10M40 177q4 6 0 11" stroke="#C96A28" stroke-width="2" fill="none"/></g>
 <path class="room-tail" d="M58 188q10 2 12-6" stroke="${P.orange}" stroke-width="5" fill="none" stroke-linecap="round"/>
-<g fill="${P.text}" font-size="9" font-weight="700"><text class="room-z" x="22" y="170">z</text><text class="room-z" style="animation-delay:1.1s" x="26" y="166" font-size="7">z</text></g></g></g><rect x="22" y="14" width="64" height="54" rx="2" fill="#0A1220" stroke="#3A5078" stroke-width="2"/>
+<g fill="${P.text}" font-size="9" font-weight="700"><text class="room-z" x="22" y="170">z</text><text class="room-z" style="animation-delay:1.1s" x="26" y="166" font-size="7">z</text></g></g></g></g><rect x="22" y="14" width="64" height="54" rx="2" fill="#0A1220" stroke="#3A5078" stroke-width="2"/>
 <path d="M32 44a8 8 0 0 1 14-4 10 10 0 0 1 20 3 6 6 0 0 1 2 11H35a6 6 0 0 1-3-10z" fill="${P.accent}" opacity=".9"/>
 <rect x="50" y="42" width="10" height="9" rx="2" fill="#0A1220"/><path d="M52 42v-3a3 3 0 0 1 6 0v3" fill="none" stroke="#0A1220" stroke-width="2"/>
 <text x="54" y="62" font-size="7" font-weight="700" text-anchor="middle" fill="${P.text}">ZERO TRUST</text>
