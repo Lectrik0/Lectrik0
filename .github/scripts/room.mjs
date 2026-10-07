@@ -61,14 +61,14 @@ function certificate(x, y) {
 // downwards in the pixel font (first word only, which is what fits). `x` is its left edge and `bottom` where it
 // stands on the shelf.
 const SG = { A: GLYPH_A(), T: GLYPH.T, O: ["###", "#.#", "#.#", "#.#", "###"], M: ["#.#", "###", "#.#", "#.#", "#.#"], I: GLYPH.I, C: GLYPH.C, L: GLYPH.L,
-  E: ["###", "#..", "##.", "#..", "###"], N: ["##.", "#.#", "#.#", "#.#", "#.#"], U: GLYPH.U, X: ["#.#", "#.#", ".#.", "#.#", "#.#"] };
+  E: ["###", "#..", "##.", "#..", "###"], N: ["##.", "#.#", "#.#", "#.#", "#.#"], U: GLYPH.U, X: ["#.#", "#.#", ".#.", "#.#", "#.#"], S: [".##", "#..", ".#.", "..#", "##."], P: ["##.", "#.#", "##.", "#..", "#.."] };
 function GLYPH_A() { return [".#.", "#.#", "###", "#.#", "#.#"]; }
 function spine(x, bottom, { w, h, title, base, edge, ink, top, topRows, logo }) {
   const g = Array.from({ length: h }, () => Array(w).fill(base));
   for (let r = 0; r < h; r++) { g[r][0] = edge; g[r][w - 1] = edge; }
   for (let r = 0; r < topRows; r++) for (let c = 0; c < w; c++) g[r][c] = top;
   for (let c = 0; c < w; c++) g[h - 1][c] = edge;
-  if (logo) for (const [c, r] of [[4, 2], [3, 3], [4, 3], [5, 3], [4, 4]]) g[r][c] = "#FFFFFF";                      // a small diamond, like the series' logo
+  for (const [c, r] of logo || []) g[r][c] = "#FFFFFF";                                                               // a small mark in the top band
   const first = Math.floor((w - 5) / 2);                                                                              // the title is 5 pixels wide once turned on its side
   [...title].forEach((letter, k) => { const top0 = topRows + 2 + k * 4;                                                // read downwards, like a real spine
     SG[letter].forEach((line, r) => [...line].forEach((px, c) => { if (px === "#") g[top0 + c][first + (4 - r)] = ink; })); });
@@ -80,7 +80,7 @@ function spine(x, bottom, { w, h, title, base, edge, ink, top, topRows, logo }) 
 }
 
 export const ROOM_H = 330;
-export const ROOM_LABEL = "A cosy pixel room at night: a pixel AWS Cloud Practitioner certificate (in progress), a pixel Fight Club poster, a shelf with three real books and a plant, rain on the window, a monitor with scrolling code and a PC tower with a glowing fan, a mug, a small succulent and a sleeping cat";
+export const ROOM_LABEL = "A cosy pixel room at night: a pixel AWS Cloud Practitioner certificate (in progress), a pixel Fight Club poster, a shelf with three real books (CCNA, CISSP, Linux for Dummies) and a plant, rain on the window, a monitor with scrolling code and a PC tower with a glowing fan, a mug, a small succulent and a sleeping cat";
 
 export const ROOM_CSS = `
 .room-rain{stroke:#7FA8E0;stroke-width:1;stroke-dasharray:3 9;animation:room-rain .55s linear infinite}@keyframes room-rain{to{stroke-dashoffset:-12}}
@@ -127,6 +127,6 @@ export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" 
 <g fill="${P.text}" font-size="9" font-weight="700"><text class="room-z" x="22" y="170">z</text><text class="room-z" style="animation-delay:1.1s" x="26" y="166" font-size="7">z</text></g></g></g></g>${certificate(22, 14)}
 <rect x="20" y="12" width="9" height="5" fill="${P.gold}" opacity=".7" transform="rotate(-20 24 14)"/>
 <rect x="116" y="62" width="86" height="5" rx="1" fill="#2A3D63"/><path d="M124 67v7M194 67v7" stroke="#2A3D63" stroke-width="3"/>
-${spine(116, 62, { w: 9, h: 29, title: "ATOMIC", base: "#F2A33A", edge: "#C77A12", ink: "#3A2A12", top: "#3A2A12", topRows: 2 })}${spine(135, 62, { w: 8, h: 26, title: "CLEAN", base: "#EDEDED", edge: "#B8B8B8", ink: "#14090D", top: "#C0392B", topRows: 3 })}<g transform="rotate(4 162 62)">${spine(152, 62, { w: 9, h: 30, title: "LINUX", base: "#FFD83D", edge: "#C9A800", ink: "#14090D", top: "#14090D", topRows: 7, logo: true })}</g>
+${spine(116, 62, { w: 9, h: 25, title: "CCNA", base: "#1B6FB5", edge: "#0E4A80", ink: "#FFFFFF", top: "#0B2E52", topRows: 6, logo: [[1, 4], [1, 3], [3, 4], [3, 3], [3, 2], [5, 4], [5, 3], [5, 2], [5, 1], [7, 4], [7, 3], [7, 2], [4, 3], [4, 2], [6, 3], [6, 2], [2, 3], [2, 4], [8, 4]] })}${spine(135, 62, { w: 8, h: 26, title: "CISSP", base: "#B3261E", edge: "#7A1712", ink: "#F5F5F5", top: "#14090D", topRows: 2 })}<g transform="rotate(4 162 62)">${spine(152, 62, { w: 9, h: 30, title: "LINUX", base: "#FFD83D", edge: "#C9A800", ink: "#14090D", top: "#14090D", topRows: 7, logo: [[4, 2], [3, 3], [4, 3], [5, 3], [4, 4]] })}</g>
 <g transform="translate(12 0)"><rect x="164" y="48" width="20" height="14" rx="2" fill="#C96A28"/><rect x="162" y="46" width="24" height="4" rx="1" fill="#E07B39"/>
 <g class="room-sway"><path d="M174 46c-10-4-14-12-12-22 8 2 14 10 12 22zM174 46c2-12 8-18 18-20-1 10-6 18-18 20zM174 46c-2-8-1-16 0-24 4 8 4 16 0 24z" fill="${P.ok}"/></g></g>${fightClubPoster(136, 106)}`;
