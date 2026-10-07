@@ -106,17 +106,19 @@ const FONT = `ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono',
 const PORTRAIT = readFileSync(fileURLToPath(new URL("./portrait.txt", import.meta.url)), "utf8").split("\n").filter(Boolean);
 
 // The dashboard builds itself when it loads: the prompts type, the heatmap fills in column by column, the
-// portrait appears line by line, then the tiles pop in and the bars grow. Times are in seconds. Without
+// portrait falls into place one character at a time, from the bottom up, then the tiles pop in and the bars grow. Times are in seconds. Without
 // animation support (or with reduced motion) everything simply shows.
 const CSS = `
 .fade{animation:fade .5s ease-out both}
 .pop{animation:pop .45s cubic-bezier(.3,1.5,.5,1) both;transform-box:fill-box;transform-origin:center}
 .type{animation:type var(--d) steps(var(--n)) both}
+.drop{animation:drop .75s ease-in both}
 .grow{animation:grow .7s cubic-bezier(.2,.8,.2,1) both;transform-box:fill-box;transform-origin:50% 100%}
 @keyframes fade{from{opacity:0}}
 @keyframes pop{from{opacity:0;transform:scale(.4)}}
 @keyframes type{from{clip-path:inset(-3px 100% -3px 0)}}
 @keyframes grow{from{transform:scaleY(0)}}
+@keyframes drop{0%{opacity:0;transform:translateY(-170px)}30%{opacity:1}100%{transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}`;
 const at = (cls, delay, inner, extra = "") => `<g class="${cls}" style="animation-delay:${delay.toFixed(2)}s${extra}">${inner}</g>`;
 
@@ -149,13 +151,20 @@ export function render(days) {
 
   // whoami: portrait and intro on the left, tiles and monthly bars on the right
   const py = heatBottom + 88, whoamiAt = heatEnd + 0.2, shown = whoamiAt + 0.5 + "whoami".length * 0.05 + 0.1;
-  const FS = 7.2, LH = 8.1;
-  const portrait = PORTRAIT.map((row, i) => at("fade", shown + i * 0.05,
-    `<text x="${PAD}" y="${(py + 6 + i * LH).toFixed(1)}" fill="${C.text}" fill-opacity=".85" font-size="${FS}" xml:space="preserve">${esc(row)}</text>`)).join("");
-  const infoTop = py + 6 + PORTRAIT.length * LH + 22;
-  const info = ME.lines.map(([k, v], i) => at("fade", shown + 0.4 + i * 0.12, text(PAD, infoTop + i * 20, k, { fill: C.dim }) + text(PAD + 64, infoTop + i * 20, v))).join("");
+  const FS = 6.6, LH = 7.4, CW = FS * 0.6;
+  // Each character drops from above and lands where it belongs; the bottom rows land first, so the head
+  // builds up like a pile. The order within a row is shuffled (the same way every time).
+  let seed = 7;
+  const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const dots = PORTRAIT.flatMap((row, r) => [...row].map((ch, c) => ch === " " ? "" :
+    `<text class="drop" x="${(PAD + c * CW).toFixed(1)}" y="${(py + 8 + r * LH).toFixed(1)}" style="animation-delay:${(shown + (PORTRAIT.length - 1 - r) * 0.085 + rand() * 0.9).toFixed(2)}s">${esc(ch)}</text>`)).join("");
+  const portrait = `<g fill="${C.text}" fill-opacity=".9" font-size="${FS}">${dots}</g>`;
+  const portraitEnd = shown + PORTRAIT.length * 0.085 + 0.9 + 0.75;
 
-  const sx = 330, sw = 160, sh = 62;
+  // the intro sits above the stats on the right
+  const sx = 290, infoY = py + 14;
+  const info = ME.lines.map(([k, v], i) => at("fade", portraitEnd * 0.5 + i * 0.12, text(sx, infoY + i * 18, k, { fill: C.dim }) + text(sx + 64, infoY + i * 18, v))).join("");
+  const sw = Math.floor((W - PAD - sx - 20) / 3), sh = 62, tilesTop = infoY + ME.lines.length * 18 + 4;
   const tiles = [
     [`${s.current.n} days`, "current streak", s.current.n ? `${shortDate(s.current.from)} – ${shortDate(s.current.to)}` : "no streak right now"],
     [`${s.longest.n} days`, "longest streak", s.longest.n ? `${shortDate(s.longest.from)} – ${shortDate(s.longest.to)}` : ""],
@@ -164,19 +173,19 @@ export function render(days) {
     [`${s.best.count}`, "best day", s.best.count ? shortDate(s.best.date) : ""],
     [s.avg.toFixed(1), "avg / active day", "contributions"]
   ].map(([big, label, sub], i) => {
-    const x = sx + (i % 3) * (sw + 10), y = py + 8 + Math.floor(i / 3) * (sh + 10);
-    return at("pop", shown + i * 0.12, `<rect x="${x}" y="${y}" width="${sw}" height="${sh}" rx="6" fill="${C.bar}" stroke="${C.line}"/>` +
+    const x = sx + (i % 3) * (sw + 10), y = tilesTop + Math.floor(i / 3) * (sh + 10);
+    return at("pop", shown + 0.3 + i * 0.12, `<rect x="${x}" y="${y}" width="${sw}" height="${sh}" rx="6" fill="${C.bar}" stroke="${C.line}"/>` +
       text(x + 12, y + 24, big, { fill: C.accent, size: 18, weight: 700 }) + text(x + 12, y + 41, label, { size: 11 }) + text(x + 12, y + 54, sub, { fill: C.dim, size: 10 }));
   }).join("");
 
-  const cy = py + 8 + 2 * (sh + 10) + 18, chartH = 54, max = Math.max(1, ...s.perMonth.map(m => m.count));
-  const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1), barsAt = shown + 0.9;
+  const cy = tilesTop + 2 * (sh + 10) + 18, chartH = 54, max = Math.max(1, ...s.perMonth.map(m => m.count));
+  const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1), barsAt = shown + 1.4;
   const bars = at("fade", barsAt, text(sx, cy - 6, "contributions per month", { fill: C.dim, size: 11 })) + s.perMonth.map((m, i) => {
     const h = Math.max(2, Math.round((m.count / max) * chartH)), x = sx + i * (bw + bgap);
     return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.ok : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
-  const H = Math.max(cy + chartH + 44, infoTop + ME.lines.length * 20 + 20);
+  const H = Math.max(cy + chartH + 44, py + 8 + PORTRAIT.length * LH + 24);
   const cursorX = PAD + 128 + "whoami".length * 7.8 + 4;
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
