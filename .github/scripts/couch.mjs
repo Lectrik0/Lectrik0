@@ -1,23 +1,23 @@
 /*
  * A couch in the space beside the intro, under a neon "OPEN TO WORK" sign. Batman sits on it drinking
- * coffee (a sip every few seconds, with steam) and the cat sits next to him. Now and then he lies down for a
- * nap: the cat hops up and curls up to sleep on his chest, until they both wake up and sit again.
+ * coffee (a sip every few seconds, with steam) and a dog sits next to him. Now and then he lies down for a
+ * nap: the dog hops up and curls up to sleep on his chest, until they both wake up and sit again.
  *
  * Everything is drawn in 2 px pixels and animated with CSS on one loop. With reduced motion you get the
  * sitting scene, still.
  */
 const PX = 2, LOOP = 44;
 const S = { k: "#14151A", g: "#4B5563", y: "#FFD83D", w: "#FFFFFF", s: "#E8B796", c: "#252A34" };      // Batman: cowl and boots, suit, belt and emblem, eyes, skin, cape
-const C = { o: "#F0883E", d: "#C96A28", e: "#0D1117", p: "#FFB3B3" };
+const C = { h: "#C8924A", e: "#7A4B22", k: "#14090D", m: "#E3B87A", n: "#14090D", t: "#FF8FA3" };      // the dog: coat, ears, eyes, muzzle, nose, tongue
 
 const BATMAN_SIT = ["...k..k........", "...kkkk........", "...wkkw........", "...kssk........", "ccggggggg......", "ccgyyyyg.......", "ccggggggggg....", "ccyyyyyy.......",
   "..gggggggggggg.", "..gggggggggggg.", ".............kk", ".............kk", ".............kk", ".............kk"];
 const LIE_HEAD = [".k..k.", ".kkkk.", ".wkkw.", ".kssk.", "..kk..", "......"], LIE_TORSO = [".......", "ggggggy", "gyyyggy", "ggggggy", "ccccccc", "......."],
   LIE_LEGS = [".........", "gggggggkk", "gggggggkk", "gggggggkk", "ccccccccc", "........."];
 const BATMAN_LIE = LIE_HEAD.map((h, r) => h + LIE_TORSO[r] + LIE_LEGS[r]);           // 22 x 6 pixels
-const CAT_SIT = ["....o...o..", "....ooooo..", "....oeoeo..", "....oopoo..", "...ooooooo.", "...ooooooo.", "..oodoodooo", "..ooooooooo", "..ooooooooo", "..oo.oo.oo."];
-const CAT_LEAP = [".o.......o..o...", ".o.......oooooo..", ".o.......oooeoo..", ".oo.oooooooooop.", "..ooooooooooooo.", "..oddooddooooo..", "..oooooooooooo..", "..oo.oo..oo.oo..", "..oo.oo..oo.oo.."];
-const CAT_LOAF = ["..o.o.......", "..ooo.......", ".oooooooooo.", "oooddoooodoo", "ooooooooooo.", ".oooooooo..."];
+const DOG_SIT = ["....hhhhh..", "...ehhhhhe.", "...ehkhkhe.", "....mmnmm..", "....hm.mh..", "...hhhhhhh.", "..hhhhhhhhh", "..hhhhhhhhh", "..hhhhhhhhh", "..hh.hh.hh."];
+const DOG_LEAP = [".h..........ee..", ".h.......hhhhe..", ".hhhhhhhhhhkhmn.", "hhhhhhhhhhhhhmm.", ".hhhhhhhhhhhhh..", ".hhhhhhhhhhhhh..", ".hhhhhhhhhhhh...", ".hh.hh....hh.hh.", ".hh.hh....hh.hh."];
+const DOG_LOAF = ["..hhh.......", ".ehhhhhhhhh.", "ehhhhhhhhhhh", "mnhhhhhhhhhh", ".mhhhhhhhhhh", "..hhhhhhh..."];
 
 const sprite = (rows, colors, ox = 0, oy = 0) => rows.flatMap((row, r) => { const out = []; let c = 0;
   while (c < row.length) { if (row[c] === ".") { c++; continue; } let e = c; while (e < row.length && row[e] === row[c]) e++;
@@ -61,7 +61,8 @@ export function couch({ x, y, w, h, delay = 0 }) {
     frames("cs-hopoff", [[0, `transform:translate(${sleepX - 8}px,${sleepY - 8}px)`], [T.hopOff[0], `transform:translate(${sleepX - 8}px,${sleepY - 8}px)`], [(T.hopOff[0] + T.hopOff[1]) / 2, `transform:translate(${(catX + sleepX) / 2}px,${seat - 46}px)`], [T.hopOff[1], `transform:translate(${catX}px,${seat - 18}px)`]]),
     `.cs-sip{animation:cs-sip 4s ease-in-out infinite}@keyframes cs-sip{0%,55%{transform:translate(0,0)}68%,82%{transform:translate(-11px,-9px)}95%,100%{transform:translate(0,0)}}`,
     `.cs-steam{opacity:0;animation:cs-steam 2.4s ease-in infinite}@keyframes cs-steam{0%{opacity:0;transform:translateY(0)}30%{opacity:.8}100%{opacity:0;transform:translateY(-12px)}}`,
-    `.cs-tail{transform-box:fill-box;transform-origin:100% 100%;animation:cs-tail .6s ease-in-out infinite alternate}@keyframes cs-tail{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}`,
+    `.cs-tail{transform-box:fill-box;transform-origin:100% 100%;animation:cs-tail .3s ease-in-out infinite alternate}@keyframes cs-tail{from{transform:rotate(-18deg)}to{transform:rotate(20deg)}}`,
+    `.cs-pant{animation:cs-pant .5s steps(1) infinite}@keyframes cs-pant{50%{transform:translateY(2px)}}`,
     `.cs-blink{opacity:0;animation:cs-blink 3.1s steps(1) infinite}@keyframes cs-blink{0%,90%{opacity:0}91%,96%{opacity:1}97%,100%{opacity:0}}`,
     `.cs-breathe{transform-box:fill-box;transform-origin:50% 100%;animation:cs-breathe 3s ease-in-out infinite alternate}@keyframes cs-breathe{to{transform:scaleY(1.06)}}`,
     `.cs-z{opacity:0;animation:cs-z 3.2s ease-out infinite}@keyframes cs-z{0%{opacity:0;transform:translate(0,0)}25%{opacity:1}100%{opacity:0;transform:translate(10px,-18px)}}`,
@@ -75,12 +76,13 @@ export function couch({ x, y, w, h, delay = 0 }) {
   // lying down: Batman stretched out along the seat, head to the left
   const lying = `<g class="cs-g cs-extra" style="animation-name:cs-lie"><g class="cs-breathe"><g transform="translate(${lieX} ${seat - 8})">${sprite(BATMAN_LIE, S)}</g></g>` +
     `<g fill="#C9D1D9" font-size="9" font-weight="700"><text class="cs-z" x="${lieX + 2}" y="${seat - 16}">z</text><text class="cs-z" style="animation-delay:1.1s" x="${lieX + 8}" y="${seat - 22}" font-size="7">z</text></g></g>`;
-  const catSit = `<g class="cs-g" style="animation-name:cs-catsit"><g transform="translate(${catX} ${seat - 20})"><g class="cs-tail" transform="translate(-2 14)">${sprite(["o.", "o.", "oo"], C)}</g>${sprite(CAT_SIT, C)}` +
-    `<g class="cs-blink"><rect x="${5 * PX}" y="${2 * PX}" width="${PX}" height="${PX}" fill="#F0883E"/><rect x="${7 * PX}" y="${2 * PX}" width="${PX}" height="${PX}" fill="#F0883E"/></g></g></g>`;
-  const loaf = `<g class="cs-g cs-extra" style="animation-name:cs-loaf"><g class="cs-breathe"><g transform="translate(${sleepX - 12} ${sleepY - 4})">${sprite(CAT_LOAF, C)}</g></g></g>`;
-  const leap = (name, anim) => `<g class="cs-g cs-extra" style="animation-name:${name}"><g class="cs-hop" style="animation-name:${anim}"><g transform="scale(.75)">${sprite(CAT_LEAP, C)}</g></g></g>`;
+  const dogSit = `<g class="cs-g" style="animation-name:cs-catsit"><g transform="translate(${catX} ${seat - 20})"><g class="cs-tail" transform="translate(-2 14)">${sprite(["h.", "h.", "hh"], C)}</g>${sprite(DOG_SIT, C)}` +
+    `<g class="cs-blink"><rect x="${5 * PX}" y="${2 * PX}" width="${PX}" height="${PX}" fill="#C8924A"/><rect x="${7 * PX}" y="${2 * PX}" width="${PX}" height="${PX}" fill="#C8924A"/></g>` +
+    `<g class="cs-pant"><rect x="${6 * PX}" y="${4 * PX}" width="${PX}" height="${PX * 2}" fill="#FF8FA3"/></g></g></g>`;
+  const loaf = `<g class="cs-g cs-extra" style="animation-name:cs-loaf"><g class="cs-breathe"><g transform="translate(${sleepX - 12} ${sleepY - 4})">${sprite(DOG_LOAF, C)}</g></g></g>`;
+  const leap = (name, anim) => `<g class="cs-g cs-extra" style="animation-name:${name}"><g class="cs-hop" style="animation-name:${anim}"><g transform="scale(.75)">${sprite(DOG_LEAP, C)}</g></g></g>`;
   const sign = `<g class="cs-neon"><text x="${cx + 66}" y="${top - 16}" text-anchor="middle" font-size="13" font-weight="700" fill="#FF6BD6" stroke="#FF6BD6" stroke-opacity=".35" stroke-width="3" paint-order="stroke">OPEN TO WORK</text>` +
     `<text x="${cx + 66}" y="${top - 16}" text-anchor="middle" font-size="13" font-weight="700" fill="#FFE3F7">OPEN TO WORK</text></g>`;
-  const svg = `<g class="cs">${sign}<g transform="translate(${cx} ${top})">${couchPixels()}</g>${sitBatman}${catSit}${lying}${loaf}${leap("cs-leapup", "cs-hopup")}${leap("cs-leapoff", "cs-hopoff")}</g>`;
+  const svg = `<g class="cs">${sign}<g transform="translate(${cx} ${top})">${couchPixels()}</g>${sitBatman}${dogSit}${lying}${loaf}${leap("cs-leapup", "cs-hopup")}${leap("cs-leapoff", "cs-hopoff")}</g>`;
   return { css, svg };
 }
