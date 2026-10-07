@@ -4,13 +4,13 @@
  * before the next pass. Two small clouds drift behind it. All motion is CSS; the scene is clipped (and faded)
  * at its edges so the plane never leaves the space it was given.
  */
-const MESSAGE = "OPEN TO CLOUD SECURITY INTERNSHIPS";
+const MESSAGE = "OPEN TO WORK - HIRE ME!";
 const COLORS = { o: "#F0883E", d: "#C96A28", w: "#C9D1D9", c: "#00C2FF", k: "#0D1117" };
 const PLANE = [   // faces left
   "...o............", "...oo...........", "o.ooooooooooooo.", "oooooooccooooow.", "..oooooooooooow.", "......wwwww.....", ".....wwwwwww....", "......d....d....",
 ];
 const CLOUD = ["..##..", ".####.", "######"];
-const PX = 2, LOOP = 14, BANNER_W = 178, BANNER_H = 18, ROPE = 14, PLANE_W = PLANE[0].length * PX;
+const PX = 2, LOOP = 14, BANNER_W = Math.round(MESSAGE.length * 5.6 + 24), BANNER_H = 18, ROPE = 14, PLANE_W = PLANE[0].length * PX;
 
 const px = (rows, color) => rows.flatMap((row, r) => [...row].map((ch, c) => ch === "#" ? `<rect x="${c * PX}" y="${r * PX}" width="${PX}" height="${PX}" fill="${color}"/>` : "")).join("");
 
@@ -33,7 +33,7 @@ export function plane({ x, y, w, h, delay = 0 }) {
 .pl-cloud{animation:pl-cloud 22s linear infinite;animation-delay:${delay}s;animation-fill-mode:backwards}@keyframes pl-cloud{from{transform:translateX(0)}to{transform:translateX(-${w + 60}px)}}
 @media (prefers-reduced-motion:reduce){.pl{display:none}}`;
   const banner = `<g class="pl-wave"><path d="M0 0H${BANNER_W}L${BANNER_W - 8} ${BANNER_H / 2}L${BANNER_W} ${BANNER_H}H0Z" fill="#C9D1D9"/>` +
-    `<text x="7" y="${BANNER_H / 2 + 3}" font-size="8.2" font-weight="700" fill="#0D1117">${MESSAGE}</text></g>`;
+    `<text x="7" y="${BANNER_H / 2 + 3}" font-size="9" font-weight="700" fill="#0D1117">${MESSAGE}</text></g>`;
   // flying left: nose at the left, the rope and banner trail to the right
   const svg = `<g class="pl"><defs><linearGradient id="pl-fade" x1="0" x2="1"><stop offset="0" stop-color="#000"/><stop offset=".07" stop-color="#fff"/><stop offset=".93" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>` +
     `<mask id="pl-mask" maskUnits="userSpaceOnUse" x="${x}" y="${y}" width="${w}" height="${h}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#pl-fade)"/></mask></defs>` +
