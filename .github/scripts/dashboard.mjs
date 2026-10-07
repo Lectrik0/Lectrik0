@@ -9,12 +9,11 @@
 //
 // Usage: node .github/scripts/dashboard.mjs [calendar.json]   (a saved calendar instead of the live one)
 import { readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
 
-// The intro under the portrait. Edit freely.
+// The intro next to the stats. Edit freely.
 const ME = {
   user: "ali",
   lines: [
@@ -102,25 +101,57 @@ const C = { bg: "#0D1117", bar: "#161B22", line: "#30363D", text: "#C9D1D9", dim
 const FONT = `ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace`;
 
 // "ALI" as a bitmap, drawn with rectangles so it looks the same everywhere (no font needed)
-// The portrait is ASCII art made once from my avatar and kept in portrait.txt (one line per row of characters).
-const PORTRAIT = readFileSync(fileURLToPath(new URL("./portrait.txt", import.meta.url)), "utf8").split("\n").filter(Boolean);
-
 // The dashboard builds itself when it loads: the prompts type, the heatmap fills in column by column, the
-// portrait falls into place one character at a time, from the bottom up, then the tiles pop in and the bars grow. Times are in seconds. Without
+// cloud diagram's boxes pop in and data starts flowing along its lines, then the tiles pop in and the bars
+// grow. Times are in seconds. Without animation support (or with reduced motion) everything simply shows.
 // animation support (or with reduced motion) everything simply shows.
 const CSS = `
 .fade{animation:fade .5s ease-out both}
 .pop{animation:pop .45s cubic-bezier(.3,1.5,.5,1) both;transform-box:fill-box;transform-origin:center}
 .type{animation:type var(--d) steps(var(--n)) both}
-.drop{animation:drop .75s ease-in both}
+.flow{animation:flow 1.2s linear infinite}
 .grow{animation:grow .7s cubic-bezier(.2,.8,.2,1) both;transform-box:fill-box;transform-origin:50% 100%}
 @keyframes fade{from{opacity:0}}
 @keyframes pop{from{opacity:0;transform:scale(.4)}}
 @keyframes type{from{clip-path:inset(-3px 100% -3px 0)}}
 @keyframes grow{from{transform:scaleY(0)}}
-@keyframes drop{0%{opacity:0;transform:translateY(-170px)}30%{opacity:1}100%{transform:none}}
+@keyframes flow{to{stroke-dashoffset:-14.1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}`;
 const at = (cls, delay, inner, extra = "") => `<g class="${cls}" style="animation-delay:${delay.toFixed(2)}s${extra}">${inner}</g>`;
+
+// A small picture of how my site is meant to run on AWS: visitors reach CloudFront, which reads a private S3
+// bucket; GitHub Actions gets a short-lived token (OIDC) for an IAM role that deploys to the bucket.
+// The dots travelling along the lines are dashes sliding along each path.
+const ICON = {
+  users: `<circle cy="-14" r="4.5" fill="${C.accent}"/><path d="M-9 2a9 9 0 0 1 18 0z" fill="${C.accent}"/>`,
+  cdn: `<g fill="none" stroke="${C.accent}" stroke-width="1.6"><circle cy="-8" r="10"/><ellipse cy="-8" rx="4.5" ry="10"/><path d="M-10 -8h20"/></g>`,
+  bucket: `<g fill="none" stroke="#F0883E" stroke-width="1.6"><path d="M-10 -16h20l-3 20h-14z" fill="#F0883E" fill-opacity=".25"/><ellipse cy="-16" rx="10" ry="3"/></g>`,
+  actions: `<rect x="-10" y="-18" width="20" height="20" rx="4" fill="none" stroke="${C.ok}" stroke-width="1.6"/><path d="M-3 -13l8 5-8 5z" fill="${C.ok}"/>`,
+  iam: `<g fill="none" stroke="#A991FF" stroke-width="1.6" stroke-linejoin="round"><path d="M0 -19l10 4v8c0 6-4 9-10 11-6-2-10-5-10-11v-8z"/><path d="M-4 -8l3 3 6-7"/></g>`
+};
+
+function cloudDiagram(ox, oy, t0) {
+  const place = (x, y, inner) => `<g transform="translate(${ox + x} ${oy + y})">${inner}</g>`;
+  const node = (cx, cy, label, icon, delay) => at("pop", delay, place(cx, cy,
+    `<rect x="-32" y="-29" width="64" height="58" rx="8" fill="${C.bar}" stroke="${C.line}"/>${ICON[icon]}` +
+    `<text y="21" text-anchor="middle" font-size="9.5" fill="${C.text}">${label}</text>`));
+  const edge = (x1, y1, x2, y2, color, label, lx, ly, anchor, delay) => {
+    const angle = Math.round(Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI), d = `M${ox + x1} ${oy + y1}L${ox + x2} ${oy + y2}`;
+    return at("fade", delay, `<path d="${d}" stroke="${C.line}" stroke-width="1.4" fill="none"/>` +
+      `<path d="M-5 -3.5L2 0-5 3.5z" fill="${color}" transform="translate(${ox + x2} ${oy + y2}) rotate(${angle})"/>` +
+      `<path class="flow" d="${d}" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 14" fill="none"/>` +
+      `<text x="${ox + lx}" y="${oy + ly}" font-size="8.5" fill="${color}" text-anchor="${anchor}">${label}</text>`);
+  };
+  return at("fade", t0, `<rect x="${ox + 108}" y="${oy}" width="112" height="250" rx="10" fill="none" stroke="${C.line}" stroke-dasharray="4 4"/>` +
+      `<text x="${ox + 117}" y="${oy + 12}" font-size="8.5" fill="${C.dim}">aws</text>`) +
+    node(40, 56, "users", "users", t0 + 0.2) + node(163, 56, "CloudFront", "cdn", t0 + 0.4) +
+    node(163, 138, "S3 bucket", "bucket", t0 + 0.6) +
+    node(40, 220, "Actions", "actions", t0 + 0.8) + node(163, 220, "IAM role", "iam", t0 + 1.0) +
+    edge(72, 56, 131, 56, C.accent, "HTTPS", 101, 49, "middle", t0 + 1.2) +
+    edge(163, 85, 163, 109, C.accent, "private", 170, 100, "start", t0 + 1.4) +
+    edge(72, 220, 131, 220, "#A991FF", "OIDC", 101, 213, "middle", t0 + 1.6) +
+    edge(163, 191, 163, 167, "#A991FF", "deploy", 170, 182, "start", t0 + 1.8);
+}
 
 export function render(days) {
   const s = stats(days), level = levels(days);
@@ -149,21 +180,11 @@ export function render(days) {
     text(legendX + 14 + 5 * STEP, heatBottom + 22, "More", { fill: C.dim, size: 11 }));
   const caption = at("fade", heatEnd, text(PAD, heatBottom + 22, `${s.total} contributions in the last year`, { fill: C.dim, size: 12 }));
 
-  // whoami: portrait and intro on the left, tiles and monthly bars on the right
+  // whoami: the cloud diagram on the left, the intro, tiles and monthly bars on the right
   const py = heatBottom + 88, whoamiAt = heatEnd + 0.2, shown = whoamiAt + 0.5 + "whoami".length * 0.05 + 0.1;
-  const FS = 6.6, LH = 7.4, CW = FS * 0.6;
-  // Each character drops from above and lands where it belongs; the bottom rows land first, so the head
-  // builds up like a pile. The order within a row is shuffled (the same way every time).
-  let seed = 7;
-  const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-  const dots = PORTRAIT.flatMap((row, r) => [...row].map((ch, c) => ch === " " ? "" :
-    `<text class="drop" x="${(PAD + c * CW).toFixed(1)}" y="${(py + 8 + r * LH).toFixed(1)}" style="animation-delay:${(shown + (PORTRAIT.length - 1 - r) * 0.085 + rand() * 0.9).toFixed(2)}s">${esc(ch)}</text>`)).join("");
-  const portrait = `<g fill="${C.text}" fill-opacity=".9" font-size="${FS}">${dots}</g>`;
-  const portraitEnd = shown + PORTRAIT.length * 0.085 + 0.9 + 0.75;
-
-  // the intro sits above the stats on the right
+  const diagram = cloudDiagram(PAD, py - 2, shown);
   const sx = 290, infoY = py + 14;
-  const info = ME.lines.map(([k, v], i) => at("fade", portraitEnd * 0.5 + i * 0.12, text(sx, infoY + i * 18, k, { fill: C.dim }) + text(sx + 64, infoY + i * 18, v))).join("");
+  const info = ME.lines.map(([k, v], i) => at("fade", shown + 0.4 + i * 0.12, text(sx, infoY + i * 18, k, { fill: C.dim }) + text(sx + 64, infoY + i * 18, v))).join("");
   const sw = Math.floor((W - PAD - sx - 20) / 3), sh = 62, tilesTop = infoY + ME.lines.length * 18 + 4;
   const tiles = [
     [`${s.current.n} days`, "current streak", s.current.n ? `${shortDate(s.current.from)} – ${shortDate(s.current.to)}` : "no streak right now"],
@@ -179,13 +200,13 @@ export function render(days) {
   }).join("");
 
   const cy = tilesTop + 2 * (sh + 10) + 18, chartH = 54, max = Math.max(1, ...s.perMonth.map(m => m.count));
-  const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1), barsAt = shown + 1.4;
+  const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1), barsAt = shown + 1.2;
   const bars = at("fade", barsAt, text(sx, cy - 6, "contributions per month", { fill: C.dim, size: 11 })) + s.perMonth.map((m, i) => {
     const h = Math.max(2, Math.round((m.count / max) * chartH)), x = sx + i * (bw + bgap);
     return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.ok : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
-  const H = Math.max(cy + chartH + 44, py + 8 + PORTRAIT.length * LH + 24);
+  const H = Math.max(cy + chartH + 44, py + 270);
   const cursorX = PAD + 128 + "whoami".length * 7.8 + 4;
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
@@ -200,7 +221,7 @@ ${text(W / 2, 22, `${ME.user}@github: ~`, { fill: C.dim, size: 12, anchor: "midd
 ${prompt(66, "./contributions.sh", 0.2)}
 ${labels.join("")}${heat}${legend}${caption}
 ${prompt(py - 22, "whoami", whoamiAt)}${cursor}
-${portrait}${info}${tiles}${bars}
+${diagram}${info}${tiles}${bars}
 </svg>
 `;
 }
