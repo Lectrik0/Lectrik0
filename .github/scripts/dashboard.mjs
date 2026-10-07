@@ -9,11 +9,12 @@
 //
 // Usage: node .github/scripts/dashboard.mjs [calendar.json]   (a saved calendar instead of the live one)
 import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
 
-// The intro on the left of the whoami panel. Edit freely.
+// The intro under the portrait. Edit freely.
 const ME = {
   user: "ali",
   lines: [
@@ -101,43 +102,58 @@ const C = { bg: "#0D1117", bar: "#161B22", line: "#30363D", text: "#C9D1D9", dim
 const FONT = `ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace`;
 
 // "ALI" as a bitmap, drawn with rectangles so it looks the same everywhere (no font needed)
-const LETTERS = {
-  A: [" ### ", "#   #", "#####", "#   #", "#   #"],
-  L: ["#   ", "#   ", "#   ", "#   ", "####"],
-  I: ["###", " # ", " # ", " # ", "###"]
-};
-const BANNER = [0, 1, 2, 3, 4].map(r => [...ME.user.toUpperCase()].map(ch => LETTERS[ch][r]).join(" "));
+// The portrait is ASCII art made once from my avatar and kept in portrait.txt (one line per row of characters).
+const PORTRAIT = readFileSync(fileURLToPath(new URL("./portrait.txt", import.meta.url)), "utf8").split("\n").filter(Boolean);
+
+// The dashboard builds itself when it loads: the prompts type, the heatmap fills in column by column, the
+// portrait appears line by line, then the tiles pop in and the bars grow. Times are in seconds. Without
+// animation support (or with reduced motion) everything simply shows.
+const CSS = `
+.fade{animation:fade .5s ease-out both}
+.pop{animation:pop .45s cubic-bezier(.3,1.5,.5,1) both;transform-box:fill-box;transform-origin:center}
+.type{animation:type var(--d) steps(var(--n)) both}
+.grow{animation:grow .7s cubic-bezier(.2,.8,.2,1) both;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:scale(.4)}}
+@keyframes type{from{clip-path:inset(-3px 100% -3px 0)}}
+@keyframes grow{from{transform:scaleY(0)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}`;
+const at = (cls, delay, inner, extra = "") => `<g class="${cls}" style="animation-delay:${delay.toFixed(2)}s${extra}">${inner}</g>`;
 
 export function render(days) {
   const s = stats(days), level = levels(days);
   const W = 880, PAD = 28, CELL = 11, GAP = 3, STEP = CELL + GAP;
   const text = (x, y, content, { fill = C.text, size = 13, weight = 400, anchor = "start" } = {}) =>
     `<text x="${x}" y="${y}" fill="${fill}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}">${esc(content)}</text>`;
-  const prompt = (y, cmd, cursor) => `${text(PAD, y, `${ME.user}@github`, { fill: C.ok, weight: 600 })}${text(PAD + 92, y, "~", { fill: C.accent })}` +
-    `${text(PAD + 110, y, "$", { fill: C.dim })}${text(PAD + 128, y, cmd, { weight: 600 })}` +
-    (cursor ? `<rect x="${PAD + 128 + cmd.length * 7.8 + 4}" y="${y - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>` : "");
+  const prompt = (y, cmd, delay) => at("type", delay,
+    `${text(PAD, y, `${ME.user}@github`, { fill: C.ok, weight: 600 })}${text(PAD + 92, y, "~", { fill: C.accent })}` +
+    `${text(PAD + 110, y, "$", { fill: C.dim })}${text(PAD + 128, y, cmd, { weight: 600 })}`, `;--d:${(0.5 + cmd.length * 0.05).toFixed(2)}s;--n:${cmd.length + 14}`);
 
-  // heatmap: columns are weeks (Sunday first), rows are weekdays
-  const gx = PAD, gy = 112;
-  const first = day(days[0].date), cells = [], labels = [];
+  // heatmap: columns are weeks (Sunday first), rows are weekdays; each column fades in a moment after the last
+  const gx = PAD, gy = 112, first = day(days[0].date), columns = new Map(), labels = [];
   let lastMonth = -1;
   days.forEach(d => {
     const col = Math.floor((Math.round((day(d.date) - first) / 864e5) + days[0].weekday) / 7);
     const x = gx + col * STEP, y = gy + d.weekday * STEP;
-    cells.push(`<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${C.cells[level(d.count)]}"/>`);
+    columns.set(col, (columns.get(col) || "") + `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${C.cells[level(d.count)]}"/>`);
     const m = day(d.date).getUTCMonth();
-    if (d.weekday === 0 && m !== lastMonth && col < 51) { labels.push(text(x, gy - 8, MONTHS[m], { fill: C.dim, size: 11 })); lastMonth = m; }
+    if (d.weekday === 0 && m !== lastMonth && col < 51) { labels.push(at("fade", 1.2 + col * 0.03, text(x, gy - 8, MONTHS[m], { fill: C.dim, size: 11 }))); lastMonth = m; }
   });
-  const heatBottom = gy + 7 * STEP;
+  const heat = [...columns].map(([col, rects]) => at("fade", 1.2 + col * 0.03, rects)).join("");
+  const heatBottom = gy + 7 * STEP, heatEnd = 1.2 + columns.size * 0.03 + 0.5;
   const legendX = W - PAD - 5 * STEP - 80;
-  const legend = `${text(legendX, heatBottom + 22, "Less", { fill: C.dim, size: 11, anchor: "end" })}` +
+  const legend = at("fade", heatEnd, `${text(legendX, heatBottom + 22, "Less", { fill: C.dim, size: 11, anchor: "end" })}` +
     C.cells.map((c, i) => `<rect x="${legendX + 8 + i * STEP}" y="${heatBottom + 12}" width="${CELL}" height="${CELL}" rx="2" fill="${c}"/>`).join("") +
-    text(legendX + 14 + 5 * STEP, heatBottom + 22, "More", { fill: C.dim, size: 11 });
+    text(legendX + 14 + 5 * STEP, heatBottom + 22, "More", { fill: C.dim, size: 11 }));
+  const caption = at("fade", heatEnd, text(PAD, heatBottom + 22, `${s.total} contributions in the last year`, { fill: C.dim, size: 12 }));
 
-  // whoami panel
-  const py = heatBottom + 88;
-  const banner = BANNER.flatMap((row, r) => [...row].map((ch, c) => ch === "#" ? `<rect x="${PAD + c * 9}" y="${py + 8 + r * 9}" width="8" height="8" rx="1.5" fill="${C.accent}"/>` : "")).join("");
-  const info = ME.lines.map(([k, v], i) => text(PAD, py + 108 + i * 20, k, { fill: C.dim }) + text(PAD + 64, py + 108 + i * 20, v)).join("");
+  // whoami: portrait and intro on the left, tiles and monthly bars on the right
+  const py = heatBottom + 88, whoamiAt = heatEnd + 0.2, shown = whoamiAt + 0.5 + "whoami".length * 0.05 + 0.1;
+  const FS = 7.2, LH = 8.1;
+  const portrait = PORTRAIT.map((row, i) => at("fade", shown + i * 0.05,
+    `<text x="${PAD}" y="${(py + 6 + i * LH).toFixed(1)}" fill="${C.text}" fill-opacity=".85" font-size="${FS}" xml:space="preserve">${esc(row)}</text>`)).join("");
+  const infoTop = py + 6 + PORTRAIT.length * LH + 22;
+  const info = ME.lines.map(([k, v], i) => at("fade", shown + 0.4 + i * 0.12, text(PAD, infoTop + i * 20, k, { fill: C.dim }) + text(PAD + 64, infoTop + i * 20, v))).join("");
 
   const sx = 330, sw = 160, sh = 62;
   const tiles = [
@@ -149,31 +165,33 @@ export function render(days) {
     [s.avg.toFixed(1), "avg / active day", "contributions"]
   ].map(([big, label, sub], i) => {
     const x = sx + (i % 3) * (sw + 10), y = py + 8 + Math.floor(i / 3) * (sh + 10);
-    return `<rect x="${x}" y="${y}" width="${sw}" height="${sh}" rx="6" fill="${C.bar}" stroke="${C.line}"/>` +
-      text(x + 12, y + 24, big, { fill: C.accent, size: 18, weight: 700 }) + text(x + 12, y + 41, label, { size: 11 }) + text(x + 12, y + 54, sub, { fill: C.dim, size: 10 });
+    return at("pop", shown + i * 0.12, `<rect x="${x}" y="${y}" width="${sw}" height="${sh}" rx="6" fill="${C.bar}" stroke="${C.line}"/>` +
+      text(x + 12, y + 24, big, { fill: C.accent, size: 18, weight: 700 }) + text(x + 12, y + 41, label, { size: 11 }) + text(x + 12, y + 54, sub, { fill: C.dim, size: 10 }));
   }).join("");
 
   const cy = py + 8 + 2 * (sh + 10) + 18, chartH = 54, max = Math.max(1, ...s.perMonth.map(m => m.count));
-  const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1);
-  const bars = s.perMonth.map((m, i) => {
+  const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1), barsAt = shown + 0.9;
+  const bars = at("fade", barsAt, text(sx, cy - 6, "contributions per month", { fill: C.dim, size: 11 })) + s.perMonth.map((m, i) => {
     const h = Math.max(2, Math.round((m.count / max) * chartH)), x = sx + i * (bw + bgap);
-    return `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.ok : C.cells[3]}"/>` +
-      text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" });
+    return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.ok : C.cells[3]}"/>`) +
+      at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
-  const H = cy + chartH + 44;
+  const H = Math.max(cy + chartH + 44, infoTop + ME.lines.length * 20 + 20);
+  const cursorX = PAD + 128 + "whoami".length * 7.8 + 4;
+  const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
+<style>${CSS}</style>
 <rect width="${W}" height="${H}" rx="10" fill="${C.bg}" stroke="${C.line}"/>
 <path d="M0 10a10 10 0 0 1 10-10h${W - 20}a10 10 0 0 1 10 10v26H0z" fill="${C.bar}"/>
 <circle cx="22" cy="18" r="5.5" fill="#FF5F56"/><circle cx="42" cy="18" r="5.5" fill="#FFBD2E"/><circle cx="62" cy="18" r="5.5" fill="#27C93F"/>
 ${text(W / 2, 22, `${ME.user}@github: ~`, { fill: C.dim, size: 12, anchor: "middle" })}
-${prompt(66, "./contributions.sh")}
-${labels.join("")}${cells.join("")}${legend}
-${text(PAD, heatBottom + 22, `${s.total} contributions in the last year`, { fill: C.dim, size: 12 })}
-${prompt(py - 22, "whoami", true)}
-${banner}${info}${tiles}${text(sx, cy - 6, "contributions per month", { fill: C.dim, size: 11 })}${bars}
+${prompt(66, "./contributions.sh", 0.2)}
+${labels.join("")}${heat}${legend}${caption}
+${prompt(py - 22, "whoami", whoamiAt)}${cursor}
+${portrait}${info}${tiles}${bars}
 </svg>
 `;
 }
