@@ -30,8 +30,21 @@ function fightClubPoster(x, y) {
     `<rect x="22" y="-6" width="16" height="6" fill="${P.gold}" opacity=".7"/></g>`;
 }
 
+// A pixel Spider-Man (2 px per pixel) hanging upright from a web, one hand up on the line.
+const SPIDEY = ["Z........rr", "...rrrr..rr", "..rrrrrr.rr", "..rwrrwr.rr", "...rrrr..rr", "rrrrrrrrrrr", "rrrrkkrr...", "rrrrrrrr...", "rrbbbbbb...", "rrbbbbbb...", "rrbbbbbb...",
+  "..bb..bb...", "..bb..bb...", "..bb..bb...", "..bb..bb...", "..rr..rr...", "..rr..rr...", "..rr..rr..."].map(r => r.replace("Z", "."));
+function spiderman(x, y) {
+  const colors = { r: "#E23636", b: "#2B50AA", k: "#111111", w: "#FFFFFF" };
+  const rects = SPIDEY.flatMap((row, r) => { const out = []; let c = 0;
+    while (c < row.length) { if (row[c] === ".") { c++; continue; } let e = c; while (e < row.length && row[e] === row[c]) e++;
+      out.push(`<rect x="${x + c * 2}" y="${y + r * 2}" width="${(e - c) * 2}" height="2" fill="${colors[row[c]]}"/>`); c = e; }
+    return out; }).join("");
+  // the web runs from the ceiling to his raised hand (column 9 and 10 of the sprite)
+  return `<g class="room-swing"><path d="M${x + 20} 0V${y}" stroke="${P.text}" stroke-opacity=".75" stroke-width="1"/>${rects}</g>`;
+}
+
 export const ROOM_H = 330;
-export const ROOM_LABEL = "A cosy pixel room at night: a zero-trust poster, a pixel Fight Club poster, a shelf with a plant, rain on the window, a monitor with scrolling code, a mug, a small succulent and a sleeping cat";
+export const ROOM_LABEL = "A cosy pixel room at night: a zero-trust poster, a pixel Fight Club poster, a pixel Spider-Man hanging from a web, a shelf with a plant, rain on the window, a monitor with scrolling code, a mug, a small succulent and a sleeping cat";
 
 export const ROOM_CSS = `
 .room-rain{stroke:#7FA8E0;stroke-width:1;stroke-dasharray:3 9;animation:room-rain .55s linear infinite}@keyframes room-rain{to{stroke-dashoffset:-12}}
@@ -42,7 +55,8 @@ export const ROOM_CSS = `
 .room-glow{animation:room-glow 4s ease-in-out infinite alternate}@keyframes room-glow{from{opacity:.07}to{opacity:.17}}
 .room-tw{animation:room-tw 3s steps(3) infinite}@keyframes room-tw{50%{opacity:.25}}
 .room-breath{transform-box:fill-box;transform-origin:50% 100%;animation:room-br 3s ease-in-out infinite alternate}@keyframes room-br{to{transform:scaleY(1.07)}}
-.room-sway{transform-box:fill-box;transform-origin:50% 100%;animation:room-sway 3.4s ease-in-out infinite alternate}@keyframes room-sway{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}`;
+.room-sway{transform-box:fill-box;transform-origin:50% 100%;animation:room-sway 3.4s ease-in-out infinite alternate}@keyframes room-sway{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
+.room-swing{transform-box:fill-box;transform-origin:91% 0%;animation:room-swing 2.8s ease-in-out infinite alternate}@keyframes room-swing{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}`;
 
 export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" width="218" height="198" rx="9" fill="#0F1A2E"/>
 <clipPath id="room-w"><rect x="18" y="22" width="100" height="84" rx="3"/></clipPath>
@@ -73,4 +87,4 @@ export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" 
 <rect x="116" y="62" width="86" height="5" rx="1" fill="#2A3D63"/><path d="M124 67v7M194 67v7" stroke="#2A3D63" stroke-width="3"/>
 <rect x="122" y="42" width="7" height="20" fill="${P.purple}"/><rect x="130" y="46" width="6" height="16" fill="${P.orange}"/><rect x="137" y="40" width="7" height="22" fill="${P.accent}"/>
 <rect x="164" y="48" width="20" height="14" rx="2" fill="#C96A28"/><rect x="162" y="46" width="24" height="4" rx="1" fill="#E07B39"/>
-<g class="room-sway"><path d="M174 46c-10-4-14-12-12-22 8 2 14 10 12 22zM174 46c2-12 8-18 18-20-1 10-6 18-18 20zM174 46c-2-8-1-16 0-24 4 8 4 16 0 24z" fill="${P.ok}"/></g>${fightClubPoster(136, 106)}`;
+<g class="room-sway"><path d="M174 46c-10-4-14-12-12-22 8 2 14 10 12 22zM174 46c2-12 8-18 18-20-1 10-6 18-18 20zM174 46c-2-8-1-16 0-24 4 8 4 16 0 24z" fill="${P.ok}"/></g>${fightClubPoster(136, 106)}${spiderman(192, 70)}`;
