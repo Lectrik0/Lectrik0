@@ -98,7 +98,7 @@ export function levels(days) {
 
 /* ---------- drawing ---------- */
 const C = { bg: "#0D1117", bar: "#161B22", line: "#30363D", text: "#C9D1D9", dim: "#8B949E", accent: "#00C2FF", ok: "#3FB950",
-  cells: ["#161B22", "#0E4429", "#006D32", "#26A641", "#39D353"] };
+  cells: ["#161B22", "#1B3A66", "#2A5A9E", "#4A8BD8", "#6FC3FF"] };
 const FONT = `ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace`;
 
 // "ALI" as a bitmap, drawn with rectangles so it looks the same everywhere (no font needed)
@@ -169,7 +169,7 @@ export function render(days) {
   const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1), barsAt = shown + 1.2;
   const bars = at("fade", barsAt, text(sx, cy - 6, "contributions per month", { fill: C.dim, size: 11 })) + s.perMonth.map((m, i) => {
     const h = Math.max(2, Math.round((m.count / max) * chartH)), x = sx + i * (bw + bgap);
-    return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.ok : C.cells[3]}"/>`) +
+    return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.accent : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
   const H = Math.max(cy + chartH + 44, py + 270);
