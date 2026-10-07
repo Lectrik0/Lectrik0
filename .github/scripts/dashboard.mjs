@@ -153,6 +153,7 @@ export function render(days) {
   const sx = 290, infoY = py + 14;
   const info = ME.lines.map(([k, v], i) => at("fade", shown + 0.4 + i * 0.12, text(sx, infoY + i * 18, k, { fill: C.dim }) + text(sx + 64, infoY + i * 18, v))).join("");
   const sw = Math.floor((W - PAD - sx - 20) / 3), sh = 62, tilesTop = infoY + ME.lines.length * 18 + 4;
+  const tileSpots = Array.from({ length: 6 }, (_, i) => ({ x: sx + (i % 3) * (sw + 10), y: tilesTop + Math.floor(i / 3) * (sh + 10), w: sw, h: sh }));   // for Spider-Man to knock on
   const tiles = [
     [`${s.current.n} days`, "current streak", s.current.n ? `${shortDate(s.current.from)} – ${shortDate(s.current.to)}` : "no streak right now"],
     [`${s.longest.n} days`, "longest streak", s.longest.n ? `${shortDate(s.longest.from)} – ${shortDate(s.longest.to)}` : ""],
@@ -162,8 +163,8 @@ export function render(days) {
     [s.avg.toFixed(1), "avg / active day", "contributions"]
   ].map(([big, label, sub], i) => {
     const x = sx + (i % 3) * (sw + 10), y = tilesTop + Math.floor(i / 3) * (sh + 10);
-    return at("pop", shown + 0.3 + i * 0.12, `<rect x="${x}" y="${y}" width="${sw}" height="${sh}" rx="6" fill="${C.bar}" stroke="${C.line}"/>` +
-      text(x + 12, y + 24, big, { fill: C.accent, size: 18, weight: 700 }) + text(x + 12, y + 41, label, { size: 11 }) + text(x + 12, y + 54, sub, { fill: C.dim, size: 10 }));
+    return at("pop", shown + 0.3 + i * 0.12, `<g class="tile tile-${i}"><rect x="${x}" y="${y}" width="${sw}" height="${sh}" rx="6" fill="${C.bar}" stroke="${C.line}"/>` +
+      text(x + 12, y + 24, big, { fill: C.accent, size: 18, weight: 700 }) + text(x + 12, y + 41, label, { size: 11 }) + text(x + 12, y + 54, sub, { fill: C.dim, size: 10 }) + `</g>`);
   }).join("");
 
   const cy = tilesTop + 2 * (sh + 10) + 18, chartH = 54, max = Math.max(1, ...s.perMonth.map(m => m.count));
@@ -180,7 +181,7 @@ export function render(days) {
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
   // Spider-Man and the cat share one timeline, so they can react to each other (see critters.mjs)
-  const scene = critters({ ground: H - 12, bars: barSpots, seed: Number(new Date().toISOString().slice(0, 10).replace(/-/g, "")), delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
+  const scene = critters({ ground: H - 12, bars: barSpots, tiles: tileSpots, seed: Number(new Date().toISOString().slice(0, 10).replace(/-/g, "")), delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
