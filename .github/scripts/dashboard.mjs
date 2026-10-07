@@ -9,7 +9,7 @@
 //
 // Usage: node .github/scripts/dashboard.mjs [calendar.json]   (a saved calendar instead of the live one)
 import { readFileSync, writeFileSync } from "node:fs";
-import { ROOM_CSS, ROOM_LABEL, roomBody } from "./room.mjs";
+import { ROOM_CSS, ROOM_H, ROOM_LABEL, roomBody } from "./room.mjs";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
@@ -148,7 +148,7 @@ export function render(days) {
 
   // whoami: the lofi room on the left, the intro, tiles and monthly bars on the right
   const py = heatBottom + 88, whoamiAt = heatEnd + 0.2, shown = whoamiAt + 0.5 + "whoami".length * 0.05 + 0.1;
-  const room = at("fade", shown, `<g transform="translate(${PAD} ${py - 2})"><rect width="220" height="250" rx="10" fill="#0F1A2E" stroke="${C.line}"/>${roomBody()}</g>`);
+  const room = at("fade", shown, `<g transform="translate(${PAD} ${py - 2})"><rect width="220" height="${ROOM_H}" rx="10" fill="#0F1A2E" stroke="${C.line}"/>${roomBody()}</g>`);
   const sx = 290, infoY = py + 14;
   const info = ME.lines.map(([k, v], i) => at("fade", shown + 0.4 + i * 0.12, text(sx, infoY + i * 18, k, { fill: C.dim }) + text(sx + 64, infoY + i * 18, v))).join("");
   const sw = Math.floor((W - PAD - sx - 20) / 3), sh = 62, tilesTop = infoY + ME.lines.length * 18 + 4;
@@ -172,7 +172,7 @@ export function render(days) {
     return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.accent : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
-  const H = Math.max(cy + chartH + 44, py + 270);
+  const H = Math.max(cy + chartH + 44, py + ROOM_H + 22);
   const cursorX = PAD + 128 + "whoami".length * 7.8 + 4;
   const cursor = at("fade", shown, `<rect x="${cursorX}" y="${py - 22 - 12}" width="8" height="15" fill="${C.accent}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.5;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`);
 
