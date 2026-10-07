@@ -11,7 +11,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { ROOM_CSS, ROOM_H, ROOM_LABEL, roomBody } from "./room.mjs";
 import { critters } from "./critters.mjs";
-import { plane } from "./plane.mjs";
+import { couch } from "./couch.mjs";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
@@ -185,8 +185,8 @@ export function render(days) {
 
   // Spider-Man and the cat share one timeline, so they can react to each other (see critters.mjs)
   const scene = critters({ ground: H - 12, bars: barSpots, tiles: tileSpots, cells: cellSpots, seed: Number(new Date().toISOString().slice(0, 10).replace(/-/g, "")), delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
-  // a plane with a banner flies through the empty space beside the intro
-  const sky = plane({ x: sx + 246, y: py + 2, w: W - PAD - (sx + 246), h: 100, delay: 6 });
+  // a couch in the empty space beside the intro: Spider-Man drinks coffee, naps, and the cat sleeps on him
+  const sky = couch({ x: sx + 246, y: py + 2, w: W - PAD - (sx + 246), h: 100, delay: 6 });
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
