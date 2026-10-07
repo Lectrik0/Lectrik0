@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { ROOM_CSS, ROOM_H, ROOM_LABEL, roomBody } from "./room.mjs";
 import { critters } from "./critters.mjs";
+import { plane } from "./plane.mjs";
 
 const LOGIN = process.env.GITHUB_REPOSITORY_OWNER || "Lectrik0";
 const OUT = "dashboard.svg";
@@ -184,11 +185,13 @@ export function render(days) {
 
   // Spider-Man and the cat share one timeline, so they can react to each other (see critters.mjs)
   const scene = critters({ ground: H - 12, bars: barSpots, tiles: tileSpots, cells: cellSpots, seed: Number(new Date().toISOString().slice(0, 10).replace(/-/g, "")), delay: Math.ceil(barsAt + 0.7 + s.perMonth.length * 0.06 + 0.3) });
+  // a plane with a banner flies through the empty space beside the intro
+  const sky = plane({ x: sx + 246, y: py + 2, w: W - PAD - (sx + 246), h: 100, delay: 6 });
   const a11y = `Terminal-style summary of my GitHub activity: ${s.total} contributions in the last year on ${s.active} active days, a ${s.longest.n}-day longest streak and ${s.current.n} days current streak.`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="${esc(a11y)}" font-family="${esc(FONT)}">
 <title>${esc(a11y)}</title>
 <desc>${esc(`The picture on the left: ${ROOM_LABEL}.`)}</desc>
-<style>${CSS}${scene.css}</style>
+<style>${CSS}${scene.css}${sky.css}</style>
 <rect width="${W}" height="${H}" rx="10" fill="${C.bg}" stroke="${C.line}"/>
 <path d="M0 10a10 10 0 0 1 10-10h${W - 20}a10 10 0 0 1 10 10v26H0z" fill="${C.bar}"/>
 <circle cx="22" cy="18" r="5.5" fill="#FF5F56"/><circle cx="42" cy="18" r="5.5" fill="#FFBD2E"/><circle cx="62" cy="18" r="5.5" fill="#27C93F"/>
@@ -196,7 +199,7 @@ ${text(W / 2, 22, `${ME.user}@github: ~`, { fill: C.dim, size: 12, anchor: "midd
 ${prompt(66, "./contributions.sh", 0.2)}
 ${labels.join("")}${heat}${legend}${caption}
 ${prompt(py - 22, "whoami", whoamiAt)}${cursor}
-${room}${info}${tiles}${bars}${scene.svg}
+${room}${info}${sky.svg}${tiles}${bars}${scene.svg}
 </svg>
 `;
 }
