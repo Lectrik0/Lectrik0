@@ -43,7 +43,7 @@ export const ROOM_CSS = `
 .room-tw{animation:room-tw 3s steps(3) infinite}@keyframes room-tw{50%{opacity:.25}}
 .room-breath{transform-box:fill-box;transform-origin:50% 100%;animation:room-br 3s ease-in-out infinite alternate}@keyframes room-br{to{transform:scaleY(1.07)}}
 .room-sway{transform-box:fill-box;transform-origin:50% 100%;animation:room-sway 3.4s ease-in-out infinite alternate}@keyframes room-sway{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
-.room-cat{animation:room-cat 30s steps(1) infinite}@keyframes room-cat{0%{opacity:1}3%{opacity:0}72%{opacity:1}}`;
+.room-cat{animation:room-cat 24s steps(1) infinite}@keyframes room-cat{0%{opacity:1}2%{opacity:0}77%{opacity:1}}`;
 
 export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" width="218" height="198" rx="9" fill="#0F1A2E"/>
 <clipPath id="room-w"><rect x="18" y="22" width="100" height="84" rx="3"/></clipPath>

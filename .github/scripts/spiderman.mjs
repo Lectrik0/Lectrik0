@@ -10,7 +10,7 @@ const SPIDEY = ["........rr.", "...rrrr..rr", "..rrrrrr.rr", "..rwrrwr.rr", "...
   "..bb..bb...", "..bb..bb...", "..bb..bb...", "..bb..bb...", "..rr..rr...", "..rr..rr...", "..rr..rr..."];
 const COLORS = { r: "#E23636", b: "#2B50AA", k: "#111111", w: "#FFFFFF" };
 const WEB = "#C9D1D9", TOP = 36, LENGTH = 80, ANGLE = 35;        // web fixed at TOP (the title bar), LENGTH long, swinging +-ANGLE degrees
-const SWING = 1.1, IDLE = 3, HOME = 832;                         // seconds per swing, seconds hanging at home, home's x
+const SWING = 0.85, IDLE = 1.7, HOME = 832;      // IDLE is a whole number of swings, so each swing's "thwip!" restarts exactly when it begins                         // seconds per swing, seconds hanging at home, home's x
 const ANCHORS = [142, 234, 326, 418, 510, 602, 694, 786];        // where each web is fixed: one step is 2 * LENGTH * sin(ANGLE)
 
 const sprite = () => SPIDEY.flatMap((row, r) => { const out = []; let c = 0;
@@ -33,13 +33,14 @@ export const SPIDER_CSS = (() => {
     return `@keyframes sp${i}{0%,${pct(Math.max(0, start - 0.01))}%{${i === 0 ? `opacity:1;transform:rotate(${g.from}deg)` : hide}}${pct(start)}%{opacity:1;transform:rotate(${g.from}deg)}` +
       `${pct(end)}%{opacity:1;transform:rotate(${g.to}deg)}${pct(end + 0.01)}%,100%{${i === SEGMENTS.length - 1 ? `opacity:1;transform:rotate(${g.to}deg)` : `opacity:0;transform:rotate(${g.to}deg)`}}}`;
   }).join("\n");
-  return `\n.sp{animation-duration:${TOTAL.toFixed(1)}s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}\n${frames}\n` +
+  return `\n.sp-t{opacity:0;transform-box:fill-box;transform-origin:center;animation:sp-t ${SWING}s ease-out infinite}@keyframes sp-t{0%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1)}70%{opacity:1}100%{opacity:0}}\n.sp{animation-duration:${TOTAL.toFixed(1)}s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}\n${frames}\n` +
     `@media (prefers-reduced-motion:reduce){.sp-go{display:none}}`;
 })();
 
 export function spiderman() {
   const y = TOP + LENGTH;
   const swings = SEGMENTS.map((g, i) => `<g class="sp${i ? " sp-go" : ""}" style="animation-name:sp${i};transform-origin:${g.anchor}px ${TOP}px">` +
-    `<path d="M${g.anchor} ${TOP}V${y}" stroke="${WEB}" stroke-opacity=".75" stroke-width="1"/><use href="#spidey" x="${g.anchor}" y="${y}"/></g>`).join("");
+    `<path d="M${g.anchor} ${TOP}V${y}" stroke="${WEB}" stroke-opacity=".75" stroke-width="1"/><use href="#spidey" x="${g.anchor}" y="${y}"/>` +
+    (i ? `<text class="sp-t" x="${g.anchor}" y="${TOP + 22}" font-size="10" font-weight="700" font-style="italic" text-anchor="middle" fill="#A991FF">thwip!</text>` : "") + `</g>`).join("");
   return `<defs><g id="spidey">${sprite()}</g></defs>${swings}`;
 }
