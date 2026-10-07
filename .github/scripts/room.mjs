@@ -4,8 +4,34 @@
  */
 const P = { accent: "#00C2FF", ok: "#3FB950", purple: "#A991FF", orange: "#F0883E", dim: "#8B949E", text: "#C9D1D9", gold: "#FFD58A" };
 
+
+// A 30 x 39 pixel poster (2 px per pixel): the title in a 3 x 5 pixel font above a pink bar of soap.
+const GLYPH = { F: ["###", "#..", "##.", "#..", "#.."], I: ["###", ".#.", ".#.", ".#.", "###"], G: [".##", "#..", "#.#", "#.#", ".##"],
+  H: ["#.#", "#.#", "###", "#.#", "#.#"], T: ["###", ".#.", ".#.", ".#.", ".#."], C: [".##", "#..", "#..", "#..", ".##"],
+  L: ["#..", "#..", "#..", "#..", "###"], U: ["#.#", "#.#", "#.#", "#.#", "###"], B: ["##.", "#.#", "##.", "#.#", "##."] };
+const POSTER = { b: "#14090D", w: "#E8E8E8", l: "#FFC2D6", p: "#FF8FB3", d: "#D45F86", o: P.orange };
+function fightClubPoster(x, y) {
+  const W = 30, H = 39, g = Array.from({ length: H }, () => Array(W).fill("b"));
+  const put = (c, r, ch) => { if (r >= 0 && r < H && c >= 0 && c < W) g[r][c] = ch; };
+  const word = (text, row, col, ch) => [...text].forEach((letter, i) => GLYPH[letter].forEach((line, r) => [...line].forEach((px, c) => px === "#" && put(col + i * 4 + c, row + r, ch))));
+  for (let c = 3; c <= 26; c++) { put(c, 2, "o"); put(c, 36, "o"); }
+  word("FIGHT", 5, 5, "w"); word("CLUB", 11, 7, "w");
+  for (let r = 19; r <= 30; r++) for (let c = 5; c <= 24; c++) {
+    if ((r === 19 || r === 30) && (c === 5 || c === 24)) continue;   // rounded corners
+    put(c, r, r <= 20 ? "l" : r >= 29 ? "d" : "p");
+  }
+  for (let c = 9; c <= 20; c += 2) put(c, 25, "d");                  // the imprint on the soap
+  [[3, 17], [26, 16], [2, 22], [27, 24], [4, 32], [25, 33], [15, 16]].forEach(([c, r]) => put(c, r, "w"));
+  const rects = g.flatMap((row, r) => { const out = []; let c = 0;
+    while (c < W) { if (row[c] === "b") { c++; continue; } let e = c; while (e < W && row[e] === row[c]) e++;
+      out.push(`<rect x="${c * 2}" y="${r * 2}" width="${(e - c) * 2}" height="2" fill="${POSTER[row[c]]}"/>`); c = e; }
+    return out; }).join("");
+  return `<g transform="translate(${x} ${y}) rotate(2 30 39)"><rect x="-2" y="-2" width="64" height="82" rx="1" fill="#3A5078"/><rect width="60" height="78" fill="${POSTER.b}"/>${rects}` +
+    `<rect x="22" y="-6" width="16" height="6" fill="${P.gold}" opacity=".7"/></g>`;
+}
+
 export const ROOM_H = 330;
-export const ROOM_LABEL = "A cosy pixel room at night: a zero-trust poster, a shelf with a plant, rain on the window, a monitor with scrolling code, a mug, a small succulent and a sleeping cat";
+export const ROOM_LABEL = "A cosy pixel room at night: a zero-trust poster, a pixel Fight Club poster, a shelf with a plant, rain on the window, a monitor with scrolling code, a mug, a small succulent and a sleeping cat";
 
 export const ROOM_CSS = `
 .room-rain{stroke:#7FA8E0;stroke-width:1;stroke-dasharray:3 9;animation:room-rain .55s linear infinite}@keyframes room-rain{to{stroke-dashoffset:-12}}
@@ -47,4 +73,4 @@ export const roomBody = () => `<g transform="translate(0 80)"><rect x="1" y="1" 
 <rect x="116" y="62" width="86" height="5" rx="1" fill="#2A3D63"/><path d="M124 67v7M194 67v7" stroke="#2A3D63" stroke-width="3"/>
 <rect x="122" y="42" width="7" height="20" fill="${P.purple}"/><rect x="130" y="46" width="6" height="16" fill="${P.orange}"/><rect x="137" y="40" width="7" height="22" fill="${P.accent}"/>
 <rect x="164" y="48" width="20" height="14" rx="2" fill="#C96A28"/><rect x="162" y="46" width="24" height="4" rx="1" fill="#E07B39"/>
-<g class="room-sway"><path d="M174 46c-10-4-14-12-12-22 8 2 14 10 12 22zM174 46c2-12 8-18 18-20-1 10-6 18-18 20zM174 46c-2-8-1-16 0-24 4 8 4 16 0 24z" fill="${P.ok}"/></g>`;
+<g class="room-sway"><path d="M174 46c-10-4-14-12-12-22 8 2 14 10 12 22zM174 46c2-12 8-18 18-20-1 10-6 18-18 20zM174 46c-2-8-1-16 0-24 4 8 4 16 0 24z" fill="${P.ok}"/></g>${fightClubPoster(136, 106)}`;
