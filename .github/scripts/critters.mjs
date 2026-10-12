@@ -24,7 +24,7 @@ const S_COLORS = { r: "#E23636", b: "#2B50AA", k: "#111111", w: "#FFFFFF" };
 const SPIDEY = ["........rr.", "...rrrr..rr", "..rrrrrr.rr", "..rwrrwr.rr", "...rrrr..rr", "rrrrrrrrrrr", "rrrrkkrr...", "rrrrrrrr...", "rrbbbbbb...", "rrbbbbbb...", "rrbbbbbb...",
   "..bb..bb...", "..bb..bb...", "..bb..bb...", "..bb..bb...", "..rr..rr...", "..rr..rr...", "..rr..rr..."];
 
-const C_COLORS = { g: "#8B949E", y: "#FFD58A", k: "#14090D", o: "#F0883E", d: "#C96A28", e: "#0D1117", p: "#FFB3B3", h: "#FF6B8B" };
+const C_COLORS = { g: "#9DB1CF", y: "#FFC46B", k: "#14090D", o: "#FFC46B", d: "#C96A28", e: "#060C1A", p: "#FFB3B3", h: "#FF6B8B" };
 const WALK = [
   [".o.......o..o...", ".o.......oooooo..", ".o.......oooeoo..", ".oo.oooooooooop.", "..ooooooooooooo.", "..oddooddooooo..", "..oooooooooooo..", "..oo.oo..oo.oo..", "..oo.oo..oo.oo.."],
   [".o.......o..o...", ".o.......oooooo..", ".o.......oooeoo..", ".oo.oooooooooop.", "..ooooooooooooo.", "..oddooddooooo..", "..oooooooooooo..", "...oo.oo.oo.oo..", "...oo.oo.oo.oo.."]
@@ -43,7 +43,7 @@ const px = (rows, colors, size) => rows.flatMap((row, r) => { const out = []; le
 const TOP = 36, LENGTH = 80, ANGLE = 35, SIN = Math.sin(ANGLE * Math.PI / 180);   // webs are fixed at the title bar (y = TOP)
 const SWING = 0.85, IDLE = 2.8, HOME = 832, STEP = 2 * LENGTH * SIN;                // seconds per swing, seconds hanging at home, home's x, distance of one swing
 const CP = 3, WALK_W = WALK[0][0].length * CP, SIT_W = SIT[0].length * CP, SIT_H = SIT.length * CP;
-const WEB = "#C9D1D9", CAT_VISITS = 2, TILE_VISITS = 2, CELL_VISITS = 1, WORDS = ["thud!", "locked.", "denied.", "nope."], clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const WEB = "#E6EEF9", CAT_VISITS = 2, TILE_VISITS = 2, CELL_VISITS = 1, WORDS = ["thud!", "locked.", "denied.", "nope."], clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 // a small seeded random generator, so a day's picture is always the same
 function random(seed) {
@@ -128,7 +128,7 @@ export function critters({ ground, bars, tiles, cells = [], delay = 0, seed = 1 
       if (s.flip) css.push(frames(`fl${e}_${i}`, [[0, "transform:rotate(0deg)"], [at0(s.start) + 0.15, "transform:rotate(0deg)"], [at0(s.end) - 0.1, "transform:rotate(360deg)"], [at0(s.end) + 0.02, "transform:rotate(360deg)"], [at0(s.end) + 0.03, "transform:rotate(0deg)"]]));
       const y = TOP + s.L, ax = s.anchor.toFixed(1);
       svg.push(`<g class="sp${first ? "" : " sp-go"}" style="animation-name:${name};transform-origin:${ax}px ${TOP}px"><path d="M${ax} ${TOP}V${y.toFixed(1)}" stroke="${WEB}" stroke-opacity=".75" stroke-width="1"/>${s.flip ? `<g class="sp-flip" style="animation-name:fl${e}_${i}">` : ""}<use href="#spidey" x="${ax}" y="${y.toFixed(1)}"/>${s.flip ? "</g>" : ""}` +
-        (s.idle ? "" : `<text class="sp-t" style="animation-name:th${e}_${i}" x="${ax}" y="${TOP + 22}" font-size="10" font-weight="700" font-style="italic" text-anchor="middle" fill="#A991FF">thwip!</text>`) + `</g>`);
+        (s.idle ? "" : `<text class="sp-t" style="animation-name:th${e}_${i}" x="${ax}" y="${TOP + 22}" font-size="10" font-weight="700" font-style="italic" text-anchor="middle" fill="#B39BFF">thwip!</text>`) + `</g>`);
     });
 
     /* the visit: he drops on a long web (beside the cat, or in front of a stat box), sways, flicks away, and is pulled up */
@@ -151,7 +151,7 @@ export function critters({ ground, bars, tiles, cells = [], delay = 0, seed = 1 
       css.push(gate(`wc-flash${e}`, "opacity:1", "opacity:0", [[h0 + 0.3, h0 + 0.55], [h0 + 0.75, h0 + 1.0]]));
       css.push(frames(`wc-plus${e}`, [[0, "opacity:0;transform:translateY(0)"], [h0 + 0.5, "opacity:0;transform:translateY(0)"], [h0 + 0.6, "opacity:1;transform:translateY(0)"], [f1, "opacity:0;transform:translateY(-20px)"]]));
       svg.push(`<g class="wc"><g class="wc-gate" style="animation-name:wc-flash${e}"><rect x="${c.x}" y="${c.y}" width="11" height="11" rx="2" fill="#FFFFFF"/></g>` +
-        `<g class="wc-glide" style="animation-name:wc-plus${e}"><text x="${c.x + 5.5}" y="${c.y - 2}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFD58A">+1</text></g></g>`);
+        `<g class="wc-glide" style="animation-name:wc-plus${e}"><text x="${c.x + 5.5}" y="${c.y - 2}" text-anchor="middle" font-size="10" font-weight="700" fill="#FFC46B">+1</text></g></g>`);
     } else if (p.kind === "tile") {
       /* the stat box: it shakes while he pounds on it, and a padlock and a word pop up */
       const t = p.tile, i = tiles.indexOf(t);
@@ -174,9 +174,9 @@ export function critters({ ground, bars, tiles, cells = [], delay = 0, seed = 1 
       css.push(gate(`wc-hearts${e}`, "opacity:1", "opacity:0", [[f0, at0(p.tDown)]]));
       const mirror = p.side === -1 ? `translate(${p.sitX + SIT_W} ${p.sitTop}) scale(-1 1)` : `translate(${p.sitX} ${p.sitTop})`;
       svg.push(`<g class="wc"><g transform="${mirror}"><g class="wc-gate" style="animation-name:wc-showsit${e}"><g class="wc-land" style="animation-name:wc-land${e}">${px(SIT, C_COLORS, CP)}<g class="wc-tail" transform="translate(0 ${6 * CP})">${px(TAIL, C_COLORS, CP)}</g>` +
-        `<g class="wc-blink"><rect x="${5 * CP}" y="${2 * CP}" width="${CP}" height="${CP}" fill="#F0883E"/><rect x="${7 * CP}" y="${2 * CP}" width="${CP}" height="${CP}" fill="#F0883E"/></g>` +
+        `<g class="wc-blink"><rect x="${5 * CP}" y="${2 * CP}" width="${CP}" height="${CP}" fill="#FFC46B"/><rect x="${7 * CP}" y="${2 * CP}" width="${CP}" height="${CP}" fill="#FFC46B"/></g>` +
         `<g class="wc-gate" style="animation-name:wc-paw${e}"><g class="wc-swat">${px(PAW, C_COLORS, CP)}</g></g></g></g></g>` +
-        `<g class="wc-gate" style="animation-name:wc-fly${e}"><g transform="translate(${(p.sitX + 28).toFixed(1)} ${(p.sitTop - 4).toFixed(1)})"><g class="wc-buzz"><circle r="1.5" fill="#C9D1D9"/><circle cx="-2" cy="-1.5" r="1.1" fill="#8B949E"/><circle cx="2" cy="-1.5" r="1.1" fill="#8B949E"/></g></g></g>` +
+        `<g class="wc-gate" style="animation-name:wc-fly${e}"><g transform="translate(${(p.sitX + 28).toFixed(1)} ${(p.sitTop - 4).toFixed(1)})"><g class="wc-buzz"><circle r="1.5" fill="#E6EEF9"/><circle cx="-2" cy="-1.5" r="1.1" fill="#9DB1CF"/><circle cx="2" cy="-1.5" r="1.1" fill="#9DB1CF"/></g></g></g>` +
         `<g class="wc-gate" style="animation-name:wc-hearts${e}"><g transform="translate(${p.sitX + SIT_W - 4} ${p.sitTop - 18})"><g class="wc-heart">${px(HEART, C_COLORS, 2)}</g></g>` +
         `<g transform="translate(${p.sitX - 8} ${p.sitTop - 8})"><g class="wc-heart" style="animation-delay:-2s">${px(HEART, C_COLORS, 2)}</g></g></g></g>`);
     }

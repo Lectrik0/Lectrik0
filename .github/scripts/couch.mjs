@@ -25,7 +25,7 @@ const sprite = (rows, colors, ox = 0, oy = 0) => rows.flatMap((row, r) => { cons
   return out; }).join("");
 
 // the couch: a 66 x 22 pixel picture
-const COUCH = { b: "#6A4BC8", l: "#8A6EE0", d: "#4A3299", f: "#2A1F5C", g: "#0D1117" };
+const COUCH = { b: "#6A4BC8", l: "#8A6EE0", d: "#4A3299", f: "#2A1F5C", g: "#060C1A" };
 function couchPixels() {
   const W = 66, H = 22, g = Array.from({ length: H }, () => Array(W).fill("."));
   const fill = (c0, c1, r0, r1, ch) => { for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) g[r][c] = ch; };
@@ -71,11 +71,11 @@ export function couch({ x, y, w, h, delay = 0 }) {
   ].join("\n");
 
   const mug = `<g class="cs-sip"><g transform="translate(${sitX + 22} ${seat - 14})"><rect width="9" height="9" fill="#EDEDED"/><rect width="9" height="3" fill="#5A3A1E"/><rect x="9" y="2" width="3" height="5" fill="none" stroke="#EDEDED" stroke-width="1.5"/>` +
-    `<g stroke="#C9D1D9" stroke-width="1.2" fill="none" stroke-linecap="round"><path class="cs-steam" d="M2 -2q-2-3 0-5t0-4"/><path class="cs-steam" style="animation-delay:.8s" d="M6 -2q-2-3 0-5t0-4"/></g></g></g>`;
+    `<g stroke="#E6EEF9" stroke-width="1.2" fill="none" stroke-linecap="round"><path class="cs-steam" d="M2 -2q-2-3 0-5t0-4"/><path class="cs-steam" style="animation-delay:.8s" d="M6 -2q-2-3 0-5t0-4"/></g></g></g>`;
   const sitBatman = `<g class="cs-g" style="animation-name:cs-sit"><g transform="translate(${sitX} ${seat - 20})">${sprite(BATMAN_SIT, S)}</g>${mug}</g>`;
   // lying down: Batman stretched out along the seat, head to the left
   const lying = `<g class="cs-g cs-extra" style="animation-name:cs-lie"><g class="cs-breathe"><g transform="translate(${lieX} ${seat - 8})">${sprite(BATMAN_LIE, S)}</g></g>` +
-    `<g fill="#C9D1D9" font-size="9" font-weight="700"><text class="cs-z" x="${lieX + 2}" y="${seat - 16}">z</text><text class="cs-z" style="animation-delay:1.1s" x="${lieX + 8}" y="${seat - 22}" font-size="7">z</text></g></g>`;
+    `<g fill="#E6EEF9" font-size="9" font-weight="700"><text class="cs-z" x="${lieX + 2}" y="${seat - 16}">z</text><text class="cs-z" style="animation-delay:1.1s" x="${lieX + 8}" y="${seat - 22}" font-size="7">z</text></g></g>`;
   const dogSit = `<g class="cs-g" style="animation-name:cs-catsit"><g transform="translate(${catX} ${seat - 20})"><g class="cs-tail" transform="translate(-2 14)">${sprite(["h.", "h.", "hh"], C)}</g>${sprite(DOG_SIT, C)}` +
     `<g class="cs-blink"><rect x="${5 * PX}" y="${2 * PX}" width="${PX}" height="${PX}" fill="#C8924A"/><rect x="${7 * PX}" y="${2 * PX}" width="${PX}" height="${PX}" fill="#C8924A"/></g>` +
     `<g class="cs-pant"><rect x="${6 * PX}" y="${4 * PX}" width="${PX}" height="${PX * 2}" fill="#FF8FA3"/></g></g></g>`;

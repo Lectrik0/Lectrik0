@@ -99,8 +99,8 @@ export function levels(days) {
 }
 
 /* ---------- drawing ---------- */
-const C = { bg: "#0D1117", bar: "#161B22", line: "#30363D", text: "#C9D1D9", dim: "#8B949E", accent: "#00C2FF", ok: "#3FB950",
-  cells: ["#161B22", "#1B3A66", "#2A5A9E", "#4A8BD8", "#6FC3FF"] };
+const C = { bg: "#060C1A", bar: "#0D1730", line: "#23365F", text: "#E6EEF9", dim: "#9DB1CF", accent: "#4FE0D2", amber: "#FFC46B", ok: "#62E8A6",
+  cells: ["#0D1730", "#0E3A46", "#11706E", "#2CB3A8", "#4FE0D2"] };
 const FONT = `ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace`;
 
 // "ALI" as a bitmap, drawn with rectangles so it looks the same everywhere (no font needed)
@@ -152,7 +152,7 @@ export function render(days) {
 
   // whoami: the lofi room on the left, the intro, tiles and monthly bars on the right
   const py = heatBottom + 88, whoamiAt = heatEnd + 0.2, shown = whoamiAt + 0.5 + "whoami".length * 0.05 + 0.1;
-  const room = at("fade", shown, `<g transform="translate(${PAD} ${py - 2})"><rect width="220" height="${ROOM_H}" rx="10" fill="#0F1A2E" stroke="${C.line}"/>${roomBody()}</g>`);
+  const room = at("fade", shown, `<g transform="translate(${PAD} ${py - 2})"><rect width="220" height="${ROOM_H}" rx="10" fill="#0D1730" stroke="${C.line}"/>${roomBody()}</g>`);
   const sx = 290, infoY = py + 14;
   const info = ME.lines.map(([k, v], i) => at("fade", shown + 0.4 + i * 0.12, text(sx, infoY + i * 18, k, { fill: C.dim }) + text(sx + 64, infoY + i * 18, v))).join("");
   const sw = Math.floor((W - PAD - sx - 20) / 3), sh = 62, tilesTop = infoY + ME.lines.length * 18 + 4;
@@ -167,14 +167,14 @@ export function render(days) {
   ].map(([big, label, sub], i) => {
     const x = sx + (i % 3) * (sw + 10), y = tilesTop + Math.floor(i / 3) * (sh + 10);
     return at("pop", shown + 0.3 + i * 0.12, `<g class="tile tile-${i}"><rect x="${x}" y="${y}" width="${sw}" height="${sh}" rx="6" fill="${C.bar}" stroke="${C.line}"/>` +
-      text(x + 12, y + 24, big, { fill: C.accent, size: 18, weight: 700 }) + text(x + 12, y + 41, label, { size: 11 }) + text(x + 12, y + 54, sub, { fill: C.dim, size: 10 }) + `</g>`);
+      text(x + 12, y + 24, big, { fill: i === 0 ? C.amber : C.accent, size: 18, weight: 700 }) + text(x + 12, y + 41, label, { size: 11 }) + text(x + 12, y + 54, sub, { fill: C.dim, size: 10 }) + `</g>`);
   }).join("");
 
   const cy = tilesTop + 2 * (sh + 10) + 18, chartH = 54, max = Math.max(1, ...s.perMonth.map(m => m.count));
   const bw = 20, bgap = (3 * sw + 20 - s.perMonth.length * bw) / Math.max(1, s.perMonth.length - 1), barsAt = shown + 1.2;
   const bars = at("fade", barsAt, text(sx, cy - 6, "contributions per month", { fill: C.dim, size: 11 })) + s.perMonth.map((m, i) => {
     const h = Math.max(2, Math.round((m.count / max) * chartH)), x = sx + i * (bw + bgap);
-    return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.accent : C.cells[3]}"/>`) +
+    return at("grow", barsAt + i * 0.06, `<rect x="${x.toFixed(1)}" y="${cy + chartH - h}" width="${bw}" height="${h}" rx="2" fill="${m.count === max ? C.amber : C.cells[3]}"/>`) +
       at("fade", barsAt + i * 0.06, text((x + bw / 2).toFixed(1), cy + chartH + 14, MONTHS[m.month], { fill: C.dim, size: 10, anchor: "middle" }));
   }).join("");
   // where each bar is, for the cat to hop onto
