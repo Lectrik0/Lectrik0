@@ -22,7 +22,7 @@ const ME = {
   lines: [
     ["name", "Ali Ahmed"],
     ["role", "Cybersecurity student"],
-    ["focus", "Cloud security (AWS)"],
+    ["focus", "DevOps / cloud (AWS)"],
     ["based", "Cairo, Egypt"],
     ["now", "Intern @ Ebank"]
   ]

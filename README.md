@@ -19,14 +19,14 @@
 name:      Ali
 role:      Final-year Cybersecurity Student @ German International University (GIU), Egypt
 now:       Intern @ Ebank (Jul 2026 – Jan 2027)
-focus:     Cloud Security (AWS)
-interests: [IAM, cloud misconfigurations, infrastructure as code, security automation]
-goal:      Cloud Security Engineer
+focus:     DevOps / Cloud engineering (AWS)
+interests: [infrastructure as code, CI/CD, containers, cloud security automation]
+goal:      DevOps / Cloud Engineer, then Cloud Security / DevSecOps
 ```
 
-- ☁️ Specializing in **cloud security**: securing AWS environments, finding misconfigurations, and automating security with code
+- ☁️ Building toward **DevOps and cloud engineering**: automating and running AWS infrastructure with code, and later specializing in **cloud security / DevSecOps**
 - 🔬 Practicing on intentionally vulnerable labs like **flaws.cloud** and **CloudGoat**, with write-ups coming here
-- 🌱 Currently learning **AWS**, **Python** for security automation, and **Terraform**
+- 🌱 Currently learning **AWS**, **Python**, **Terraform** and **Kubernetes**
 
 ---
 
